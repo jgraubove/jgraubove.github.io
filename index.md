@@ -12,6 +12,12 @@ This is a list of the papers of my team with short descriptions of the main find
 
 ---
 
+[Microplastic pollution on historic facades: Hidden 'sink' or urban threat?](/page_microplastics)
+
+<img src="images/microplastics.png?raw=true" width="300"/>
+
+---
+
 ### 2022
 
 [Using Citizen Heritage Science to Monitor Remote Sites Before and During the First COVID-19 Lockdown: A Comparison of Two Methods](/page_crowd1)
