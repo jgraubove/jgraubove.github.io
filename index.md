@@ -1,6 +1,6 @@
 # Portfolio
 
-This is a list of my papers with short descriptions of the main findings. 
+This is a list of my papers with short descriptions of the main findings. Too often, the journey of an academic publication ends when it appears in the journal's website. But we should see this as the start of its useful life. I hope this index of publications helps some readers find useful results, explained in plain words. 
 
 ---
 
