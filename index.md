@@ -114,7 +114,7 @@
 
 ---
 
-[Crowdsourcing as an Analytical Method: Metrology of Smartphone Measurements in Heritage Science](/page_crowd0)
+[Crowdsourcing as an Analytical Method: Metrology of Smartphone Measurements in Heritage Science](/page_crowd)
 
 <img src="images/crowd.jpg?raw=true" width="300"/>
 
