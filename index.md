@@ -8,6 +8,8 @@ This is a list of the papers of my team with short descriptions of the main find
 
 [Review and interlaboratory comparison of the Oddy test methodology](/page_oddy2)
 
+<img src="images/oddyinterlab.png?raw=true" width="300"/>
+
 ---
 
 ### 2022
