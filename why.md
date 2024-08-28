@@ -7,7 +7,7 @@
 
 _Confucius said: “Zigong, do you take me for someone who learns a lot and then stores it all up in my head?” Zigong replied: “Yes, is that not the case?” Confucius said: “No. I weave it all together into a single thread.”_
 
-In summer 2022, in a short period of time, my team published articles on the following topics:
+I decided to create this site in summer 2022, when in a short period of time, my team published articles on the following topics:
 
 - 🏰 historic glass windows
 - 📚 archives and reading rooms
@@ -18,11 +18,11 @@ First I was proud, but then pride gave way to uneasiness. I feared that, to the 
 
 ## 1. The science of things
 
-We humans live in a tiny slice of geological time, the Anthropocene. For the last fifteen thousand years we have been filling our ecosystem with stuff. Most of it is rubbish. But there is a very small proportion of this gigantic pile of things that has some value, to us or to the future. Heritage science is the science that studies this tiny proportion of valuable human products. It is the science of the **Anthropocene of Value**. 
+We humans exist in a brief slice of geological time, the Anthropocene. For the last fifteen thousand years, we have been filling our ecosystem with material—most of it rubbish. But within this vast accumulation, a tiny fraction holds value, either for us or for the future. Heritage science is the discipline that studies this small proportion of valuable human artifacts. It is the science of the Anthropocene of Value.
 
-To make matters more complicated, things are rarely just things. In fact, the most valuable things are so much more, that they are barely things at all. The most valuable bits of the anthropocene are those that are physical manifestations of human culture. As a consequence, there is no point in studying things only as materials. Things are either part of living culture, or fossils remains of past culture.
+To complicate matters, things are rarely just things. In fact, the most valuable objects often transcend their material form, becoming more than mere things. The most precious parts of the Anthropocene are those that serve as physical manifestations of human culture. Consequently, there is little point in studying these objects solely as materials. They are either integral to living culture or the fossilized remains of past culture.
 
-In sum, the job of heritage scientists is difficult because (1) the number of things in the anthropocene of value is extremely large and (2) there is no clear division between what's part of the antrhopocene of value and what is not. 
+In short, the task of heritage scientists is challenging because (1) the number of objects in the Anthropocene of Value is vast, and (2) there is no clear boundary between what belongs to this Anthropocene of Value and what does not.
 
 ## 2. Panta Rei
 
