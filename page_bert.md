@@ -1,4 +1,4 @@
-<img src="images/Picture1.jpg?raw=true" width="300"/>
+<img src="images/bert.PNG?raw=true" width="300"/>
 
 **Lead Author:** Ziwen Liu
 
