@@ -4,7 +4,7 @@
 
 ### 2022
 
-[Using Citizen Heritage Science to Monitor Remote Sites Before and During the First COVID-19 Lockdown: A Comparison of Two Methods](/page_crowd)
+[Using Citizen Heritage Science to Monitor Remote Sites Before and During the First COVID-19 Lockdown: A Comparison of Two Methods](/page_crowd2)
 
 <img src="images/Picture1.jpg?raw=true" width="300"/>
 
