@@ -1,4 +1,4 @@
-<img src="images/paper.jpg?raw=true" width="300"/>
+<img src="images/paper.jpeg?raw=true" width="300"/>
 
 **Lead Author:** Rosie Brigham
 
