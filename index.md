@@ -126,7 +126,7 @@
 
 ---
 
-[BIM for heritage science: a review](/page_Review)
+[BIM for heritage science: a review](/page_reviewbim)
 
 <img src="images/Review.PNG?raw=true" width="300"/>
 
