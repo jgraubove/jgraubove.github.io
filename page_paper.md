@@ -1,9 +1,9 @@
 <img src="images/paper.jpeg?raw=true" width="300"/>
 
-**Lead Author:** Rosie Brigham
+**Lead Author:** Cristina Duran
 
-**Featured heritage:** Two beautiful sites managed by Historic Environment Scotland.
+**Featured heritage:** Amsterdam City Archives
 
-**What we learned:** If you ask visitors to remote sites to contribute to monitoring with their smartphones, they will respond. If a pandemic prevents participants to contribute, citizen scientists can still share old images.
+**What we learned:** We use the collections demography model developed by Matija Strlic to compare different preservation scenarios. We compare deacidification with improvement of storage conditions. We also test the impact of delaying decisions and investment. I am proud of this paper because it shows an operational use of damage functions to aid practical decision making.
 
 **Where can I read it?** The paper is available for free [here](https://discovery.ucl.ac.uk/id/eprint/10157778/)
