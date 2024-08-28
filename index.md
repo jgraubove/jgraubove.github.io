@@ -4,6 +4,12 @@ This is a list of the papers of my team with short descriptions of the main find
 
 ---
 
+### 2024
+
+[Review and interlaboratory comparison of the Oddy test methodology](/page_oddy2)
+
+---
+
 ### 2022
 
 [Using Citizen Heritage Science to Monitor Remote Sites Before and During the First COVID-19 Lockdown: A Comparison of Two Methods](/page_crowd1)
