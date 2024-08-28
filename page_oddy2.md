@@ -1,4 +1,4 @@
-<img src="images/oddyinterlab.PNG?raw=true" width="300"/>
+<img src="images/oddyinterlab.png?raw=true" width="300"/>
 
 **Lead Author:** Emilio Cano and many others
 
