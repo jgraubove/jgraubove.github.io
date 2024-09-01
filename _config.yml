@@ -11,7 +11,7 @@ description: > # your text below (remove <br> elements if you don't need line br
   <br><br>
     <!-- Image that links to a website -->
   <a href="https://github.com/jgraubove/thegameofheritagedestruction">
-    <img src="/images/game.PNG" alt="Example Image" style="max-width: 100%; height: auto;">
+    <img src="/images/game.PNG" alt="Example Image" style="max-width: 50%; height: auto;">
   </a>
 theme: jekyll-theme-minimal
 google_analytics: UA-000000-0 # your Google Analytics tracking ID here
