@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preventive Conservation Calculator</title>
+
+<style>
+:root {
+    --bg:#f4f4f9;
+    --card:#fff;
+    --primary:#3b82f6;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+}
+
+body {
+    font-family: system-ui;
+    background: var(--bg);
+    display:flex;
+    justify-content:center;
+    padding:20px;
+}
+
+.container {
+    background:var(--card);
+    padding:25px;
+    border-radius:14px;
+    max-width:560px;
+    width:100%;
+}
+
+h2 { margin-top:0; }
+
+.section {
+    margin-top:18px;
+    font-weight:600;
+    color:var(--primary);
+}
+
+.input {
+    margin:10px 0;
+}
+
+label {
+    display:block;
+    font-size:13px;
+    color:var(--muted);
+}
+
+input {
+    width:100%;
+    padding:8px;
+    border:1px solid var(--border);
+    border-radius:6px;
+}
+
+.result {
+    display:flex;
+    justify-content:space-between;
+    margin:6px 0;
+}
+
+.value {
+    font-weight:600;
+    color:var(--text);
+}
+
+.highlight {
+    color:var(--primary);
+}
+
+.results {
+    margin-top:15px;
+    padding-top:15px;
+    border-top:1px solid var(--border);
+}
+
+/* Button Styles */
+.copy-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.copy-btn:hover {
+    background-color: #2563eb;
+}
+
+.copy-btn.copied {
+    background-color: #10b981;
+}
+
+/* NEW spacing before README */
+.readme-spacer{
+    height:25px;
+}
+
+/* README */
+.readme {
+    margin-top:0;
+    padding:15px;
+    background:#fafafa;
+    border:1px solid var(--border);
+    border-radius:10px;
+}
+
+.readme h3 {
+    margin-top:0;
+}
+
+.eq {
+    margin:10px 0;
+    padding:8px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:8px;
+}
+
+.bib {
+    margin-top:15px;
+    font-size:13px;
+    color:var(--muted);
+}
+
+/* Right alignment for the toggle label */
+.toggle-label-right {
+    text-align: left;
+    font-weight: 600;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+/* Container for advanced inputs - handles visibility */
+.advanced-group {
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.3s ease, transform 0.3s ease, display 0.3s allow-discrete;
+    margin-left: 0; /* Reset margin */
+}
+
+.advanced-group.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    margin-left: 15px; /* Indent slightly when visible */
+}
+
+/* Input styling for advanced fields */
+.advanced-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Preventive Conservation Calculator</h2>
+
+<!-- INPUTS -->
+<div class="section">Inputs</div>
+
+<div class="input">
+<label>Temperature (°C)</label>
+<input id="temp" type="number" value="22">
+</div>
+
+<div class="input">
+<label>Relative Humidity (%)</label>
+<input id="rh" type="number" value="60">
+</div>
+
+<!-- Master Toggle (Right Aligned) -->
+<div class="input">
+<label class="toggle-label-right">
+    <input type="checkbox" id="advanced-toggle" onchange="toggleAdvancedInputs()"> 
+    Enable Advanced Parameters (pH, DP)
+</label>
+</div>
+
+<!-- Advanced Inputs (Hidden by default) -->
+<div id="advanced-container" class="advanced-group">
+    <div class="input">
+        <label>Custom pH (Default: 7)</label>
+        <input id="ph-input" type="number" value="7" class="advanced-input">
+    </div>
+
+    <div class="input">
+        <label>Initial Degree of Polymerization (Default: 2000)</label>
+        <input id="dp-input" type="number" value="2000" class="advanced-input">
+    </div>
+
+    <div class="input">
+        <label>Critical Degree of Polymerization (Default: 300)</label>
+        <input id="cdp-input" type="number" value="300" class="advanced-input">
+    </div>
+</div>
+
+
+<!-- PSYCHROMETRICS -->
+<div class="results">
+<div class="result"><span>Vapour Pressure (kPa)</span><span class="value" id="vp">0</span></div>
+<div class="result"><span>Dew Point (°C)</span><span class="value" id="dp">0</span></div>
+<div class="result"><span>Absolute Humidity (g/m³)</span><span class="value" id="ah">0</span></div>
+<div class="result"><span>Enthalpy (kJ/kg)</span><span class="value" id="en">0</span></div>
+</div>
+
+<div class="results">
+<div class="result"><span>Lifetime Multiplier (basic)</span><span class="value" id="lm-basic">0</span></div>
+</div>
+
+<div class="results">
+<div class="result"><span>Strlič LM</span><span class="value" id="lm-strlic">0</span></div>
+<div class="result"><span>Years to Failure</span><span class="value" id="years">0</span></div>
+</div>
+
+<div class="results">
+<div class="result"><span>Photographic LM</span><span class="value" id="lm-photo">0</span></div>
+</div>
+
+<div class="results">
+<div class="result"><span>Mould Index (Johansson)</span><span class="value" id="mould">0</span></div>
+</div>
+
+<div class="results">
+<div class="result"><span>PVC Storage Lifetime (years)</span><span class="value" id="pvc">0</span></div>
+</div>
+
+<!-- CONSERVATION HEATING SECTION -->
+<div class="results">
+<div class="result"><span>Conservation Heating ΔT (to 50% RH)</span><span class="value" id="cons-delta-t">0</span></div>
+<div class="result"><span>Required Temp (°C)</span><span class="value" id="cons-target-t">0</span></div>
+</div>
+
+<!-- COPY BUTTON -->
+<button id="copy-btn" class="copy-btn" onclick="copyResults()">Copy Results to Clipboard</button>
+
+<!-- SPACER -->
+<div class="readme-spacer"></div>
+
+<!-- ================= README ================= -->
+<div class="readme">
+
+<h3>Model description</h3>
+
+<div class="eq">
+<b>Psychrometrics</b><br>
+Standard thermodynamic relationships are used to compute vapour pressure, dew point, absolute humidity and enthalpy from temperature and relative humidity.
+</div>
+
+<div class="eq">
+<b>Conservation Heating</b><br>
+Calculates the temperature increase required to reduce Relative Humidity to 50% while maintaining constant absolute moisture content. Based on the inverse Magnus formula.
+</div>
+
+<div class="eq">
+<b>Basic Lifetime Multiplier</b><br>
+A relative rate model is used:
+<br><br>
+LM = k<sub>ref</sub> / k
+<br><br>
+where k depends on temperature and humidity (Arrhenius-type formulation).
+</div>
+
+<div class="eq">
+<b>Strlič paper degradation model</b><br>
+Paper degradation follows a kinetic model:
+<br><br>
+k = exp(36.987 + humidity term + pH term − temperature term)
+<br><br>
+Lifetime is derived using the Ekenstam relationship.
+</div>
+
+<div class="eq">
+<b>Photographic materials</b><br>
+Empirical model:
+<br><br>
+k = exp(32 + 0.01 RH − 11000/(T+273.15))
+</div>
+
+<div class="eq">
+<b>Mould growth (Johansson)</b><br>
+The model combines temperature and humidity response functions derived from experimental curves. It is only activated above 80% RH and scaled to produce a 0–1 risk index.
+</div>
+
+<div class="eq">
+<b>PVC storage lifetime</b><br>
+Based on:
+<br><br>
+ln k = 34.2 − 10300/(T + 273.5) + constants + humidity term
+<br><br>
+Lifetime = 15 / exp(k)
+</div>
+
+<div class="bib">
+<h4>References</h4>
+
+Estimation of mould growth levels on rendered façades based on surface relative humidity and surface temperature measurements<br><br>
+
+Damage function for poly(vinyl chloride) in heritage collections<br><br>
+
+The Strlič damage function for paper (Part 3)<br><br>
+
+Fenech, A. – Damage function for photographic materials
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* ... existing constants ... */
+const Tref = 20;
+const RHref = 50;
+
+// Master toggle function
+function toggleAdvancedInputs() {
+    const checkbox = document.getElementById("advanced-toggle");
+    const container = document.getElementById("advanced-container");
+    const inputs = [
+        document.getElementById("ph-input"),
+        document.getElementById("dp-input"),
+        document.getElementById("cdp-input")
+    ];
+
+    if (checkbox.checked) {
+        // Show container
+        container.classList.add("visible");
+        // Ensure inputs are enabled
+        inputs.forEach(input => input.disabled = false);
+    } else {
+        // Hide container
+        container.classList.remove("visible");
+        // Disable inputs (optional, but good practice)
+        inputs.forEach(input => input.disabled = true);
+    }
+    
+    calculate();
+}
+
+// Event listeners
+const temp = document.getElementById("temp");
+const rh = document.getElementById("rh");
+
+[temp, rh, 
+ document.getElementById("ph-input"),
+ document.getElementById("dp-input"),
+ document.getElementById("cdp-input")]
+.forEach(e => e.addEventListener("input", calculate));
+
+function calculate(){
+    const T = parseFloat(temp.value);
+    const RH = parseFloat(rh.value);
+
+    if(isNaN(T)||isNaN(RH)) return;
+
+    /* ... (Keep existing Psychrometrics code) ... */
+    const A=17.27,B=237.7;
+    const Ps=0.61078*Math.exp((A*T)/(B+T));
+    const Pv=Ps*RH/100;
+    const Td=(B*Math.log(Pv/0.61078))/(A-Math.log(Pv/0.61078));
+    const AH=(216.7*Pv)/(T+273.15);
+    const h=1.006*T + (0.622*Pv/(101.325-Pv))*(2501+1.86*T);
+
+    document.getElementById("vp").textContent = Pv.toFixed(3);
+    document.getElementById("dp").textContent = Td.toFixed(2);
+    document.getElementById("ah").textContent = AH.toFixed(2);
+    document.getElementById("en").textContent = h.toFixed(2);
+
+    /* ... (Keep Basic LM code) ... */
+    const Ea=115000,R=8.314;
+    function k_basic(T,RH){
+        const RHf = RH/100;
+        return Math.exp(
+            (Ea/R)*((1/(Tref+273.15))-(1/(T+273.15)))
+            + 0.8*Math.log(RHf/(RHref/100))
+        );
+    }
+    const k0 = k_basic(Tref,RHref);
+    const k1 = k_basic(T,RH);
+    const lmBasic = k0/k1;
+    document.getElementById("lm-basic").textContent = lmBasic.toFixed(2);
+
+    /* STRLIC & ADVANCED LOGIC */
+    // Check master toggle
+    const useAdvanced = document.getElementById("advanced-toggle").checked;
+    
+    // Extract values with defaults if disabled
+    const pH = useAdvanced ? parseFloat(document.getElementById("ph-input").value) : 7;
+    const dp = useAdvanced ? parseFloat(document.getElementById("dp-input").value) : 2000;
+    const cdp = useAdvanced ? parseFloat(document.getElementById("cdp-input").value) : 300;
+
+    // Safety checks
+    const safePH = isNaN(pH) ? 7 : pH;
+    const safeDP = isNaN(dp) ? 2000 : dp;
+    const safeCDP = isNaN(cdp) ? 300 : cdp;
+
+    function strlicK(T,RH,pH_val){
+        const RHf = RH/100;
+        if(RHf<=0 || RHf>=1) return NaN;
+        const term = Math.log(1-RHf)/(1.67*T - 285.655);
+        const exp = 1/(2.491 - 0.012*T);
+        const h_term = Math.sign(term)*Math.pow(Math.abs(term),exp);
+        return Math.exp(
+            36.987 + 36.72*h_term +
+            0.244*Math.log(Math.pow(10,-pH_val)) -
+            14300/(T+273.15)
+        );
+    }
+
+    const k = strlicK(T,RH,safePH);
+    const kref = strlicK(Tref,RHref,safePH);
+
+    let lmStrlic = kref/k;
+    let years = 0;
+
+    if(isFinite(k) && safeCDP > 0 && safeDP > safeCDP){
+        const term = (1/safeCDP)-(1/safeDP);
+        years = term / k;
+    }
+
+    document.getElementById("lm-strlic").textContent = isFinite(lmStrlic) ? lmStrlic.toFixed(2) : "0";
+    document.getElementById("years").textContent = years > 0 ? years.toFixed(1) : "0";
+
+    
+    /* PHOTO */
+    function photoK(T,RH){ return Math.exp(32 + 0.01*RH - 11*(1000/(T+273.15))); }
+    const k_curr = photoK(T, RH);
+    const k_ref = photoK(Tref, RHref);
+    document.getElementById("lm-photo").textContent = (k_ref / k_curr).toFixed(2);
+
+    /* MOULD */
+    let mouldIndex = 0;
+    if (RH >= 80) {
+        mouldIndex = 0.00002*(T+RH);
+        mouldIndex = 1/(1+Math.exp(-mouldIndex));
+    }
+    document.getElementById("mould").textContent = mouldIndex.toFixed(3);
+
+    /* PVC */
+    const lnK = 34.2 - 10300/(T + 273.5) + 0.9*(0.86/120000) + 0.0063*(RH/100);
+    document.getElementById("pvc").textContent = (15 / Math.exp(lnK)).toFixed(2);
+
+    /* CONSERVATION HEATING */
+    const Ps_target_calc = Pv / (50 / 100);
+    let consDeltaT = 0;
+    let consTargetT = 0;
+    if (Ps_target_calc > 0 && Ps_target_calc < 100) {
+        const X = Math.log(Ps_target_calc / 0.61078);
+        const T_new = (X * B) / (A - X);
+        consTargetT = T_new;
+        consDeltaT = T_new - T;
+    }
+    document.getElementById("cons-delta-t").textContent = consDeltaT.toFixed(2);
+    document.getElementById("cons-target-t").textContent = consTargetT.toFixed(2);
+}
+
+window.onload = function() {
+    toggleAdvancedInputs();
+    calculate();
+};
+
+function copyResults() {
+    // Define the mapping of IDs to Labels
+    const fields = [
+        { id: 'vp', label: 'Vapour Pressure (kPa)' },
+        { id: 'dp', label: 'Dew Point (°C)' },
+        { id: 'ah', label: 'Absolute Humidity (g/m³)' },
+        { id: 'en', label: 'Enthalpy (kJ/kg)' },
+        { id: 'lm-basic', label: 'Lifetime Multiplier (basic)' },
+        { id: 'lm-strlic', label: 'Strlič LM' },
+        { id: 'years', label: 'Years to Failure' },
+        { id: 'lm-photo', label: 'Photographic LM' },
+        { id: 'mould', label: 'Mould Index (Johansson)' },
+        { id: 'pvc', label: 'PVC Storage Lifetime (years)' },
+        { id: 'cons-delta-t', label: 'Conservation Heating ΔT (to 50% RH)' },
+        { id: 'cons-target-t', label: 'Required Temp (°C)' }
+    ];
+
+    let csvContent = "Parameter\tValue\n";
+
+    fields.forEach(field => {
+        const val = document.getElementById(field.id).textContent;
+        csvContent += `${field.label}\t${val}\n`;
+    });
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(csvContent).then(() => {
+        const btn = document.getElementById('copy-btn');
+        const originalText = btn.textContent;
+        
+        btn.textContent = "Copied!";
+        btn.classList.add('copied');
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy to clipboard. Please try again.');
+    });
+}
+
+calculate();
+
+</script>
+
+</body>
+</html>
