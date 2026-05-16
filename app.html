@@ -49,11 +49,56 @@ label {
     color:var(--muted);
 }
 
-input {
-    width:100%;
+input[type="number"] {
+    width: 100%;
     padding:8px;
     border:1px solid var(--border);
     border-radius:6px;
+    box-sizing: border-box;
+}
+
+/* Checkbox Label Styling */
+.toggle-label-left {
+    text-align: left;
+    font-weight: 600;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.toggle-label-left input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Advanced Inputs Container */
+.advanced-group {
+    display: none;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    margin-left: 0;
+}
+
+.advanced-group.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    margin-left: 15px; /* Indent when visible */
+}
+
+.advanced-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
 }
 
 .result {
@@ -131,45 +176,6 @@ input {
     font-size:13px;
     color:var(--muted);
 }
-
-/* Right alignment for the toggle label */
-.toggle-label-right {
-    text-align: left;
-    font-weight: 600;
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-    cursor: pointer;
-}
-
-/* Container for advanced inputs - handles visibility */
-.advanced-group {
-    display: none; /* Hidden by default */
-    opacity: 0;
-    transform: translateY(-5px);
-    transition: opacity 0.3s ease, transform 0.3s ease, display 0.3s allow-discrete;
-    margin-left: 0; /* Reset margin */
-}
-
-.advanced-group.visible {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-    margin-left: 15px; /* Indent slightly when visible */
-}
-
-/* Input styling for advanced fields */
-.advanced-input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: #fff;
-    color: var(--text);
-}
-
 </style>
 </head>
 
@@ -192,9 +198,9 @@ input {
 <input id="rh" type="number" value="60">
 </div>
 
-<!-- Master Toggle (Right Aligned) -->
+<!-- Master Toggle (Left Aligned) -->
 <div class="input">
-<label class="toggle-label-right">
+<label class="toggle-label-left">
     <input type="checkbox" id="advanced-toggle" onchange="toggleAdvancedInputs()"> 
     Enable Advanced Parameters (pH, DP)
 </label>
@@ -218,6 +224,7 @@ input {
     </div>
 </div>
 
+<div class="section">Outputs</div>
 
 <!-- PSYCHROMETRICS -->
 <div class="results">
@@ -332,7 +339,6 @@ Fenech, A. – Damage function for photographic materials
 
 <script>
 
-/* ... existing constants ... */
 const Tref = 20;
 const RHref = 50;
 
@@ -347,21 +353,16 @@ function toggleAdvancedInputs() {
     ];
 
     if (checkbox.checked) {
-        // Show container
         container.classList.add("visible");
-        // Ensure inputs are enabled
         inputs.forEach(input => input.disabled = false);
     } else {
-        // Hide container
         container.classList.remove("visible");
-        // Disable inputs (optional, but good practice)
         inputs.forEach(input => input.disabled = true);
     }
     
     calculate();
 }
 
-// Event listeners
 const temp = document.getElementById("temp");
 const rh = document.getElementById("rh");
 
@@ -372,119 +373,126 @@ const rh = document.getElementById("rh");
 .forEach(e => e.addEventListener("input", calculate));
 
 function calculate(){
-    const T = parseFloat(temp.value);
-    const RH = parseFloat(rh.value);
 
-    if(isNaN(T)||isNaN(RH)) return;
+const T = parseFloat(temp.value);
+const RH = parseFloat(rh.value);
 
-    /* ... (Keep existing Psychrometrics code) ... */
-    const A=17.27,B=237.7;
-    const Ps=0.61078*Math.exp((A*T)/(B+T));
-    const Pv=Ps*RH/100;
-    const Td=(B*Math.log(Pv/0.61078))/(A-Math.log(Pv/0.61078));
-    const AH=(216.7*Pv)/(T+273.15);
-    const h=1.006*T + (0.622*Pv/(101.325-Pv))*(2501+1.86*T);
+if(isNaN(T)||isNaN(RH)) return;
 
-    document.getElementById("vp").textContent = Pv.toFixed(3);
-    document.getElementById("dp").textContent = Td.toFixed(2);
-    document.getElementById("ah").textContent = AH.toFixed(2);
-    document.getElementById("en").textContent = h.toFixed(2);
+/* PSYCHROMETRICS */
+const A=17.27,B=237.7;
+const Ps=0.61078*Math.exp((A*T)/(B+T));
+const Pv=Ps*RH/100;
+const Td=(B*Math.log(Pv/0.61078))/(A-Math.log(Pv/0.61078));
+const AH=(216.7*Pv)/(T+273.15);
+const h=1.006*T + (0.622*Pv/(101.325-Pv))*(2501+1.86*T);
 
-    /* ... (Keep Basic LM code) ... */
-    const Ea=115000,R=8.314;
-    function k_basic(T,RH){
-        const RHf = RH/100;
-        return Math.exp(
-            (Ea/R)*((1/(Tref+273.15))-(1/(T+273.15)))
-            + 0.8*Math.log(RHf/(RHref/100))
-        );
-    }
-    const k0 = k_basic(Tref,RHref);
-    const k1 = k_basic(T,RH);
-    const lmBasic = k0/k1;
-    document.getElementById("lm-basic").textContent = lmBasic.toFixed(2);
+document.getElementById("vp").textContent = Pv.toFixed(3);
+document.getElementById("dp").textContent = Td.toFixed(2);
+document.getElementById("ah").textContent = AH.toFixed(2);
+document.getElementById("en").textContent = h.toFixed(2);
 
-    /* STRLIC & ADVANCED LOGIC */
-    // Check master toggle
-    const useAdvanced = document.getElementById("advanced-toggle").checked;
-    
-    // Extract values with defaults if disabled
-    const pH = useAdvanced ? parseFloat(document.getElementById("ph-input").value) : 7;
-    const dp = useAdvanced ? parseFloat(document.getElementById("dp-input").value) : 2000;
-    const cdp = useAdvanced ? parseFloat(document.getElementById("cdp-input").value) : 300;
+/* BASIC LM */
+const Ea=115000,R=8.314;
 
-    // Safety checks
-    const safePH = isNaN(pH) ? 7 : pH;
-    const safeDP = isNaN(dp) ? 2000 : dp;
-    const safeCDP = isNaN(cdp) ? 300 : cdp;
-
-    function strlicK(T,RH,pH_val){
-        const RHf = RH/100;
-        if(RHf<=0 || RHf>=1) return NaN;
-        const term = Math.log(1-RHf)/(1.67*T - 285.655);
-        const exp = 1/(2.491 - 0.012*T);
-        const h_term = Math.sign(term)*Math.pow(Math.abs(term),exp);
-        return Math.exp(
-            36.987 + 36.72*h_term +
-            0.244*Math.log(Math.pow(10,-pH_val)) -
-            14300/(T+273.15)
-        );
-    }
-
-    const k = strlicK(T,RH,safePH);
-    const kref = strlicK(Tref,RHref,safePH);
-
-    let lmStrlic = kref/k;
-    let years = 0;
-
-    if(isFinite(k) && safeCDP > 0 && safeDP > safeCDP){
-        const term = (1/safeCDP)-(1/safeDP);
-        years = term / k;
-    }
-
-    document.getElementById("lm-strlic").textContent = isFinite(lmStrlic) ? lmStrlic.toFixed(2) : "0";
-    document.getElementById("years").textContent = years > 0 ? years.toFixed(1) : "0";
-
-    
-    /* PHOTO */
-    function photoK(T,RH){ return Math.exp(32 + 0.01*RH - 11*(1000/(T+273.15))); }
-    const k_curr = photoK(T, RH);
-    const k_ref = photoK(Tref, RHref);
-    document.getElementById("lm-photo").textContent = (k_ref / k_curr).toFixed(2);
-
-    /* MOULD */
-    let mouldIndex = 0;
-    if (RH >= 80) {
-        mouldIndex = 0.00002*(T+RH);
-        mouldIndex = 1/(1+Math.exp(-mouldIndex));
-    }
-    document.getElementById("mould").textContent = mouldIndex.toFixed(3);
-
-    /* PVC */
-    const lnK = 34.2 - 10300/(T + 273.5) + 0.9*(0.86/120000) + 0.0063*(RH/100);
-    document.getElementById("pvc").textContent = (15 / Math.exp(lnK)).toFixed(2);
-
-    /* CONSERVATION HEATING */
-    const Ps_target_calc = Pv / (50 / 100);
-    let consDeltaT = 0;
-    let consTargetT = 0;
-    if (Ps_target_calc > 0 && Ps_target_calc < 100) {
-        const X = Math.log(Ps_target_calc / 0.61078);
-        const T_new = (X * B) / (A - X);
-        consTargetT = T_new;
-        consDeltaT = T_new - T;
-    }
-    document.getElementById("cons-delta-t").textContent = consDeltaT.toFixed(2);
-    document.getElementById("cons-target-t").textContent = consTargetT.toFixed(2);
+function k_basic(T,RH){
+    const RHf = RH/100;
+    return Math.exp(
+        (Ea/R)*((1/(Tref+273.15))-(1/(T+273.15)))
+        + 0.8*Math.log(RHf/(RHref/100))
+    );
 }
 
-window.onload = function() {
-    toggleAdvancedInputs();
-    calculate();
-};
+const k0 = k_basic(Tref,RHref);
+const k1 = k_basic(T,RH);
+
+const lmBasic = k0/k1;
+document.getElementById("lm-basic").textContent = lmBasic.toFixed(2);
+
+/* STRLIC & ADVANCED LOGIC */
+const useAdvanced = document.getElementById("advanced-toggle").checked;
+const pH = useAdvanced ? parseFloat(document.getElementById("ph-input").value) : 7;
+const dp = useAdvanced ? parseFloat(document.getElementById("dp-input").value) : 2000;
+const cdp = useAdvanced ? parseFloat(document.getElementById("cdp-input").value) : 300;
+
+const safePH = isNaN(pH) ? 7 : pH;
+const safeDP = isNaN(dp) ? 2000 : dp;
+const safeCDP = isNaN(cdp) ? 300 : cdp;
+
+function strlicK(T,RH,pH_val){
+    const RHf = RH/100;
+    if(RHf<=0 || RHf>=1) return NaN;
+    const term = Math.log(1-RHf)/(1.67*T - 285.655);
+    const exp = 1/(2.491 - 0.012*T);
+    const h_term = Math.sign(term)*Math.pow(Math.abs(term),exp);
+    return Math.exp(
+        36.987 + 36.72*h_term +
+        0.244*Math.log(Math.pow(10,-pH_val)) -
+        14300/(T+273.15)
+    );
+}
+
+const k = strlicK(T,RH,safePH);
+const kref = strlicK(Tref,RHref,safePH);
+
+let lmStrlic = kref/k;
+let years = 0;
+
+if(isFinite(k) && safeCDP > 0 && safeDP > safeCDP){
+    const term = (1/safeCDP)-(1/safeDP);
+    years = term / k;
+}
+
+document.getElementById("lm-strlic").textContent = isFinite(lmStrlic) ? lmStrlic.toFixed(2) : "0";
+document.getElementById("years").textContent = years > 0 ? years.toFixed(1) : "0";
+
+/* PHOTO */
+function photoK(T,RH){
+    return Math.exp(32 + 0.01*RH - 11*(1000/(T+273.15)));
+}
+
+const k_curr = photoK(T, RH);
+const k_ref = photoK(Tref, RHref);
+const photoLM = k_ref / k_curr; 
+
+document.getElementById("lm-photo").textContent = photoLM.toFixed(2);
+
+/* MOULD */
+let mouldIndex = 0;
+
+if (RH >= 80) {
+    mouldIndex = 0.00002*(T+RH);
+    mouldIndex = 1/(1+Math.exp(-mouldIndex));
+}
+
+document.getElementById("mould").textContent = mouldIndex.toFixed(3);
+
+/* PVC */
+const lnK = 34.2 - 10300/(T + 273.5) + 0.9*(0.86/120000) + 0.0063*(RH/100);
+const pvcLifetime = 15 / Math.exp(lnK);
+
+document.getElementById("pvc").textContent = pvcLifetime.toFixed(2);
+
+/* CONSERVATION HEATING */
+const targetRH = 50;
+const Ps_target_calc = Pv / (targetRH / 100);
+
+let consDeltaT = 0;
+let consTargetT = 0;
+
+if (Ps_target_calc > 0 && Ps_target_calc < 100) {
+    const X = Math.log(Ps_target_calc / 0.61078);
+    const T_new = (X * B) / (A - X);
+    consTargetT = T_new;
+    consDeltaT = T_new - T;
+}
+
+document.getElementById("cons-delta-t").textContent = consDeltaT.toFixed(2);
+document.getElementById("cons-target-t").textContent = consTargetT.toFixed(2);
+
+}
 
 function copyResults() {
-    // Define the mapping of IDs to Labels
     const fields = [
         { id: 'vp', label: 'Vapour Pressure (kPa)' },
         { id: 'dp', label: 'Dew Point (°C)' },
@@ -507,7 +515,6 @@ function copyResults() {
         csvContent += `${field.label}\t${val}\n`;
     });
 
-    // Copy to clipboard
     navigator.clipboard.writeText(csvContent).then(() => {
         const btn = document.getElementById('copy-btn');
         const originalText = btn.textContent;
@@ -525,7 +532,10 @@ function copyResults() {
     });
 }
 
-calculate();
+window.onload = function() {
+    toggleAdvancedInputs();
+    calculate();
+};
 
 </script>
 
