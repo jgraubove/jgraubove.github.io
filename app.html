@@ -13,6 +13,9 @@
     --text:#1f2937;
     --muted:#6b7280;
     --border:#e5e7eb;
+    --safe:#10b981;
+    --warn:#f59e0b;
+    --danger:#ef4444;
 }
 
 body {
@@ -89,7 +92,7 @@ input[type="number"] {
     display: block;
     opacity: 1;
     transform: translateY(0);
-    margin-left: 15px; /* Indent when visible */
+    margin-left: 15px;
 }
 
 .advanced-input {
@@ -120,6 +123,27 @@ input[type="number"] {
     margin-top:15px;
     padding-top:15px;
     border-top:1px solid var(--border);
+}
+
+/* Badge Styles */
+.badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+}
+.badge-safe { background-color: var(--safe); }
+.badge-warn { background-color: var(--warn); }
+.badge-danger { background-color: var(--danger); }
+
+/* Salt List Styling */
+.salt-list {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.4;
+    margin-top: 4px;
 }
 
 /* Button Styles */
@@ -183,7 +207,9 @@ input[type="number"] {
 
 <div class="container">
 
-<h2>Preventive Conservation Calculator</h2>
+<h2>Preventive Conservation T and RH Calculator</h2>
+
+A free, simple and quick calculator for damage functions and environmental deterioration of collections, provided by the UCL Institute for Sustainable Heritage. Below you will find a <a href="#sec1">short user manual</a> and the <a href="#sec2">license and citation notes</a>.
 
 <!-- INPUTS -->
 <div class="section">Inputs</div>
@@ -195,14 +221,14 @@ input[type="number"] {
 
 <div class="input">
 <label>Relative Humidity (%)</label>
-<input id="rh" type="number" value="60">
+<input id="rh" type="number" value="60" min="1" max="100">
 </div>
 
 <!-- Master Toggle (Left Aligned) -->
 <div class="input">
 <label class="toggle-label-left">
     <input type="checkbox" id="advanced-toggle" onchange="toggleAdvancedInputs()"> 
-    Enable Advanced Parameters (pH, DP)
+    Enable advanced parameters for paper degradation (pH, DP)
 </label>
 </div>
 
@@ -234,17 +260,28 @@ input[type="number"] {
 <div class="result"><span>Enthalpy (kJ/kg)</span><span class="value" id="en">0</span></div>
 </div>
 
+<!-- EMC SECTION -->
+<div class="results">
+<div class="result">
+    <span>Wood Equilibrium Moisture Content (%)</span>
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span class="value" id="emc-val">0</span>
+        <span id="emc-badge" class="badge badge-safe">Safe</span>
+    </div>
+</div>
+</div>
+
 <div class="results">
 <div class="result"><span>Lifetime Multiplier (basic)</span><span class="value" id="lm-basic">0</span></div>
 </div>
 
 <div class="results">
-<div class="result"><span>Strlič LM</span><span class="value" id="lm-strlic">0</span></div>
-<div class="result"><span>Years to Failure</span><span class="value" id="years">0</span></div>
+<div class="result"><span>Paper Lifetime Multiplier (Strlič)</span><span class="value" id="lm-strlic">0</span></div>
+<div class="result"><span>Paper Lifetime (years)</span><span class="value" id="years">0</span></div>
 </div>
 
 <div class="results">
-<div class="result"><span>Photographic LM</span><span class="value" id="lm-photo">0</span></div>
+<div class="result"><span>Photographic Lifetime Multiplier (Fenech)</span><span class="value" id="lm-photo">0</span></div>
 </div>
 
 <div class="results">
@@ -252,13 +289,21 @@ input[type="number"] {
 </div>
 
 <div class="results">
-<div class="result"><span>PVC Storage Lifetime (years)</span><span class="value" id="pvc">0</span></div>
+<div class="result"><span>PVC Lifetime (Rijavec) (years)</span><span class="value" id="pvc">0</span></div>
 </div>
 
 <!-- CONSERVATION HEATING SECTION -->
 <div class="results">
 <div class="result"><span>Conservation Heating ΔT (to 50% RH)</span><span class="value" id="cons-delta-t">0</span></div>
 <div class="result"><span>Required Temp (°C)</span><span class="value" id="cons-target-t">0</span></div>
+</div>
+
+<!-- SALT DELIQUESCENCE SECTION -->
+<div class="results">
+<div class="result">
+    <span>Active Deliquescent Salts</span>
+    <span class="value salt-list" id="salt-list">None</span>
+</div>
 </div>
 
 <!-- COPY BUTTON -->
@@ -268,74 +313,120 @@ input[type="number"] {
 <div class="readme-spacer"></div>
 
 <!-- ================= README ================= -->
-<div class="readme">
+<div class="readme"  id="sec1">
 
 <h3>Model description</h3>
 
 <div class="eq">
 <b>Psychrometrics</b><br>
-Standard thermodynamic relationships are used to compute vapour pressure, dew point, absolute humidity and enthalpy from temperature and relative humidity.
+The calculator uses thermodynamic relationships to compute vapour pressure, dew point, absolute humidity, and enthalpy. Vapour pressure indicates how much water vapour is present in the air and is useful for comparing moisture conditions across different temperatures. Absolute humidity provides similar information, expressed as the mass of water vapour per unit volume of air. The dew point indicates the temperature at which moisture will condense, for example on colder surfaces within a room. Enthalpy can be used to estimate the cooling and dehumidification load: the higher the enthalpy, the more energy is required to cool or dehumidify the air.
 </div>
 
 <div class="eq">
-<b>Conservation Heating</b><br>
-Calculates the temperature increase required to reduce Relative Humidity to 50% while maintaining constant absolute moisture content. Based on the inverse Magnus formula.
+<b>Wood EMC & Rot Risk</b><br>
+This is based on the Simpson equation to estimate the Equilibrium Moisture Content (EMC) of wood, assuming stable environmental conditions over a long period of time. The risk of fungal growth in wood varies depending on the wood species, so the following thresholds are indicative only.<br>
+• < 20%: Safe (No rot risk)<br>
+• 20–28%: Caution (Susceptible)<br>
+• > 28%: High Risk (Fungal growth likely)
 </div>
 
 <div class="eq">
 <b>Basic Lifetime Multiplier</b><br>
-A relative rate model is used:
-<br><br>
-LM = k<sub>ref</sub> / k
-<br><br>
-where k depends on temperature and humidity (Arrhenius-type formulation).
+A value &gt; 1 indicates an extended lifetime compared to the reference (20°C, 50% RH); &lt; 1 indicates a shortened life. This is calculated as the ratio of reaction rates using the Arrhenius equation, which broadly reflects the temperature dependence of chemical degradation.  This equation has been superseded in the case of cellulose, but it remains a useful "no-assumption" metric for a more general indicator of the hydrolysis of organic materials. It is best used to compare two environments rather than to make specific predictions about any given environment. 
 </div>
 
 <div class="eq">
-<b>Strlič paper degradation model</b><br>
-Paper degradation follows a kinetic model:
-<br><br>
-k = exp(36.987 + humidity term + pH term − temperature term)
-<br><br>
-Lifetime is derived using the Ekenstam relationship.
+<b>Paper lifetime using Strlič model</b><br>
+Unlike the basic model, this equation incorporates <strong>paper pH</strong>, where lower acidity significantly increases the rate of deterioration. <br>
+The underlying damage function calculates the degradation rate, which can yield a Lifetime Multiplier or an estimated lifetime in years. 
+ 
+To estimate a lifetime, the model requires the <strong>initial Degree of Polymerization (DP)</strong> (typically ~2000 for fresh paper) and a <strong>critical DP</strong> (usually 300), representing the point where paper becomes too brittle to handle. 
+        DP reflects the average chain length of cellulose molecules. For a fuller implementation of this model, see the <a href="https://hsll.shinyapps.io/COL_DEM_3/" target="_blank" style="color:var(--primary);">the Collections Demography App</a>.
 </div>
 
 <div class="eq">
-<b>Photographic materials</b><br>
-Empirical model:
-<br><br>
-k = exp(32 + 0.01 RH − 11000/(T+273.15))
+<b>Photographic lifetime multiplier</b><br>
+This calculation uses the damage function by Fenech et al. This damage function predicts color change. It includes Acetic Acid, which is assumed to be absent in this case. The lifetime multiplier is calculated by dividing the rate at 50% RH and 20ºC by the rate at the actual conditions. 
 </div>
 
 <div class="eq">
-<b>Mould growth (Johansson)</b><br>
-The model combines temperature and humidity response functions derived from experimental curves. It is only activated above 80% RH and scaled to produce a 0–1 risk index.
+<b>Mould growth (Polynomial)</b><br>
+The model by Johansson et al. is one of many methods to convert T and RH into mould risk. Their index indicates mould activity. This means that any value higher than 0 indicates the potential for mould growth. It is calculated by multiplying two indices, one that indicates the sensitivity to T and other the sensitivity to RH. The equations used here are obtained by fitting curves into the visualisations of their original paper. Their model includes a time-effect, ignored here: if the conditions are not favourable in the recent past, the mould index should be penalised. This kind of analysis requires a time-series of T and RH. 
 </div>
 
 <div class="eq">
 <b>PVC storage lifetime</b><br>
-Based on:
-<br><br>
-ln k = 34.2 − 10300/(T + 273.5) + constants + humidity term
-<br><br>
-Lifetime = 15 / exp(k)
+This calculation uses the damage function by Rijavec et al. The function predicts color change. Following the authors, lifetime is defined as the time until the color has changed 15 Delta E units (this is a standard way of measuring color change). Their equation includes the molecular weight of PVC and the percentage of plasticiser, which are taken here as the average values in the author's dataset. The results are not highly sensitive to these values. 
+</div>
+
+
+<div class="eq">
+<b>Conservation Heating</b><br>
+Calculates the temperature increase required to reduce Relative Humidity to 50% while maintaining constant absolute moisture content. This is a strategy used in places where dehumidifcation is not viable, for example in historic houses. Naturally, the objective is not always 50%RH.
+</div>
+
+<div class="eq">
+<b>Salt Deliquescence</b><br>
+Lists salts that are likely to deliquesce (absorb moisture and dissolve) at the current Relative Humidity (RH), based on approximate critical RH thresholds at around 20 °C.<br>
+• Ca(NO₃)₂ (>55%)<br>
+• NaNO₃ (>74%)<br>
+• NaCl (>75%)<br>
+• Na₂SO₄ (>80%)<br>
+• MgSO₄ (>84%)<br>
+• KNO₃ (>94%)<br>
+In reality, salt behaviour also depends on temperature, salt mixtures and hydration states. Mixed salt systems can behave very differently from pure salts, often lowering deliquescence thresholds. More advanced thermodynamic modelling of these processes can be performed using tools such as <a href="http://science.sdf-eu.org/runsalt/" target="_blank" rel="noopener noreferrer">
+RUNSALT
+</a>.
 </div>
 
 <div class="bib">
 <h4>References</h4>
-
-Estimation of mould growth levels on rendered façades based on surface relative humidity and surface temperature measurements<br><br>
-
-Damage function for poly(vinyl chloride) in heritage collections<br><br>
-
-The Strlič damage function for paper (Part 3)<br><br>
-
-Fenech, A. – Damage function for photographic materials
+- Strlič, Matija, et al. "Damage function for historic paper. Part III: Isochrones and demography of collections." Heritage Science 3.1 (2015): 1-11.<br>
+<br>
+- Rijavec, Tjaša, Matija Strlič, and Irena Kralj Cigić. "Damage function for poly (vinyl chloride) in heritage collections." Polymer Degradation and Stability 211 (2023): 110329.<br>
+<br>
+- Fenech, Ann, et al. "Modelling the lifetime of colour photographs in archival collections." Studies in Conservation 58.2 (2013): 107-116.<br>
+<br>
+- Johansson, Sanne, Lars Wadsö, and Kenneth Sandin. "Estimation of mould growth levels on rendered façades based on surface relative humidity and surface temperature measurements." Building and Environment 45.5 (2010): 1153-1160.<br>
+<br>
+-Simpson, William Turner. Equilibrium moisture content of wood in outdoor locations in the United States and worldwide. Vol. 268. US Department of Agriculture, Forest Service, Forest Products Laboratory, 1998.<br>
 </div>
 
 </div>
 
+<div class="readme-spacer"></div>
+
+<!-- LICENSING & CITATION BLOCK -->
+<div class="readme" id="sec2">
+    <h3>Licensing & Citation</h3>
+    <div class="eq">
+        <b>License</b><br>
+        This tool is derived from public domain scientific results and is thus dedicated to the public domain under the <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" style="color:var(--primary); text-decoration:none;">Creative Commons Zero 1.0 Universal (CC0 1.0)</a> license. You are free to share and adapt the material with no attribution required.
+    </div>
+    <div class="eq">
+        <b>Citation</b><br>
+			<p>If you use this calculator in your research or publications, you can cite it as:</p>
+			<br>
+			<p><i>Grau-Bové, Josep. (2026). "Preventive Conservation T and RH Calculator". UCL Institute for Sustainable Heritage.</i></p>
+			<br>
+			<p><strong>BibTeX:</strong></p>
+<pre style="background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; font-family: monospace; overflow-x: auto; margin: 0; text-align: left; width: 100%; box-sizing: border-box;">
+@misc{GrauBove2026,
+  author = {Josep Grau-Bové},
+  title = {Preventive Conservation T and RH Calculator},
+  year = {2026},
+  institution = {UCL Institute for Sustainable Heritage},
+  url = {https://jgraubove.github.io/app.html},
+  note = {Accessed: \today}
+}
+</pre>
+    </div>
 </div>
+
+
+</div>
+
+
 
 <script>
 
@@ -392,6 +483,40 @@ document.getElementById("dp").textContent = Td.toFixed(2);
 document.getElementById("ah").textContent = AH.toFixed(2);
 document.getElementById("en").textContent = h.toFixed(2);
 
+/* =========================================================
+   USDA WOOD HANDBOOK EMC CALCULATION
+   ========================================================= */
+function calculateEMC(T, RH) {
+    const h = RH / 100.0;
+    const W = 349 + 1.29 * T + 0.0135 * T * T;
+    const K = 0.805 + 0.000736 * T - 0.00000273 * T * T;
+    const K1 = 6.27 - 0.00938 * T - 0.000303 * T * T;
+    const K2 = 1.91 + 0.0407 * T - 0.000293 * T * T;
+    const kh = Math.min(K * h, 0.9999);
+    const term1 = kh / (1 - kh);
+    const term2 = (K1 * kh + 2 * K1 * K2 * kh * kh) / (1 + K1 * kh + K1 * K2 * kh * kh);
+    let emc = (1800 / W) * (term1 + term2);
+    return emc;
+}
+
+const finalEmc = calculateEMC(T, RH);
+
+const emcValEl = document.getElementById("emc-val");
+const emcBadgeEl = document.getElementById("emc-badge");
+
+emcValEl.textContent = finalEmc.toFixed(1);
+
+if (finalEmc < 20) {
+    emcBadgeEl.className = "badge badge-safe";
+    emcBadgeEl.textContent = "Safe";
+} else if (finalEmc <= 28) {
+    emcBadgeEl.className = "badge badge-warn";
+    emcBadgeEl.textContent = "Caution";
+} else {
+    emcBadgeEl.className = "badge badge-danger";
+    emcBadgeEl.textContent = "High";
+}
+
 /* BASIC LM */
 const Ea=115000,R=8.314;
 
@@ -399,13 +524,12 @@ function k_basic(T,RH){
     const RHf = RH/100;
     return Math.exp(
         (Ea/R)*((1/(Tref+273.15))-(1/(T+273.15)))
-        + 0.8*Math.log(RHf/(RHref/100))
+        + Math.log(RHf/(RHref/100))
     );
 }
 
 const k0 = k_basic(Tref,RHref);
 const k1 = k_basic(T,RH);
-
 const lmBasic = k0/k1;
 document.getElementById("lm-basic").textContent = lmBasic.toFixed(2);
 
@@ -419,17 +543,24 @@ const safePH = isNaN(pH) ? 7 : pH;
 const safeDP = isNaN(dp) ? 2000 : dp;
 const safeCDP = isNaN(cdp) ? 300 : cdp;
 
-function strlicK(T,RH,pH_val){
-    const RHf = RH/100;
-    if(RHf<=0 || RHf>=1) return NaN;
-    const term = Math.log(1-RHf)/(1.67*T - 285.655);
-    const exp = 1/(2.491 - 0.012*T);
-    const h_term = Math.sign(term)*Math.pow(Math.abs(term),exp);
-    return Math.exp(
-        36.987 + 36.72*h_term +
-        0.244*Math.log(Math.pow(10,-pH_val)) -
-        14300/(T+273.15)
-    );
+function strlicK(T, RH, pH) {
+
+    const RHf = RH / 100;
+
+    const A = 38.039;
+    const B = 38.057;
+    const C = 1.67*T - 285.655;
+    const D = 2.491 - 0.012*T;
+    const E = 0.24;
+    const F = 14713;
+
+    const term1 = Math.pow(Math.log(1 - RHf) / C, 1 / D);
+    const term2 = E * Math.log(Math.pow(10, -pH));
+    const term3 = F / (T + 273.15);
+
+    const ln_k = A + B * term1 + term2 - term3;
+
+    return Math.exp(ln_k);
 }
 
 const k = strlicK(T,RH,safePH);
@@ -454,23 +585,45 @@ function photoK(T,RH){
 const k_curr = photoK(T, RH);
 const k_ref = photoK(Tref, RHref);
 const photoLM = k_ref / k_curr; 
-
 document.getElementById("lm-photo").textContent = photoLM.toFixed(2);
 
-/* MOULD */
-let mouldIndex = 0;
+/* MOULD RISK (Polynomial Model) */
+let mouldRisk = 0;
 
 if (RH >= 80) {
-    mouldIndex = 0.00002*(T+RH);
-    mouldIndex = 1/(1+Math.exp(-mouldIndex));
+    const x_rh = RH;
+    const x_t = T;
+
+    const f_rh = 
+        2.3428970351649641e+04 * Math.pow(x_rh, 0) +
+        -1.3477153446957620e+03 * Math.pow(x_rh, 1) +
+        3.0989753435530606e+01 * Math.pow(x_rh, 2) +
+        -3.5606009248969933e-01 * Math.pow(x_rh, 3) +
+        2.0440903212602399e-03 * Math.pow(x_rh, 4) +
+        -4.6903493958305966e-06 * Math.pow(x_rh, 5);
+
+    const f_t = 
+        2.1075647666889630e-02 * Math.pow(x_t, 0) +
+        2.2159227484411737e-02 * Math.pow(x_t, 1) +
+        -2.8709675522291311e-02 * Math.pow(x_t, 2) +
+        1.8402251509710157e-02 * Math.pow(x_t, 3) +
+        -4.8965589293262727e-03 * Math.pow(x_t, 4) +
+        7.0360928395280182e-04 * Math.pow(x_t, 5) +
+        -5.9596394077108954e-05 * Math.pow(x_t, 6) +
+        3.0565769866083325e-06 * Math.pow(x_t, 7) +
+        -9.3056256370777249e-08 * Math.pow(x_t, 8) +
+        1.5435702013423972e-09 * Math.pow(x_t, 9) +
+        -1.0724269336886679e-11 * Math.pow(x_t, 10);
+
+    mouldRisk = f_rh * f_t;
+    if (mouldRisk < 0) mouldRisk = 0;
 }
 
-document.getElementById("mould").textContent = mouldIndex.toFixed(3);
+document.getElementById("mould").textContent = mouldRisk.toFixed(4);
 
 /* PVC */
 const lnK = 34.2 - 10300/(T + 273.5) + 0.9*(0.86/120000) + 0.0063*(RH/100);
 const pvcLifetime = 15 / Math.exp(lnK);
-
 document.getElementById("pvc").textContent = pvcLifetime.toFixed(2);
 
 /* CONSERVATION HEATING */
@@ -490,28 +643,54 @@ if (Ps_target_calc > 0 && Ps_target_calc < 100) {
 document.getElementById("cons-delta-t").textContent = consDeltaT.toFixed(2);
 document.getElementById("cons-target-t").textContent = consTargetT.toFixed(2);
 
+/* SALT DELIQUESCENCE LOGIC */
+const saltListEl = document.getElementById("salt-list");
+const activeSalts = [];
+
+// Thresholds (approximate CRH at 20°C)
+if (RH > 55) activeSalts.push("Ca(NO₃)₂");
+if (RH > 74) activeSalts.push("NaNO₃");
+if (RH > 75) activeSalts.push("NaCl");
+if (RH > 80) activeSalts.push("Na₂SO₄");
+if (RH > 84) activeSalts.push("MgSO₄");
+if (RH > 94) activeSalts.push("KNO₃");
+
+if (activeSalts.length === 0) {
+    saltListEl.textContent = "None";
+} else {
+    saltListEl.textContent = activeSalts.join(", ");
+}
+
 }
 
 function copyResults() {
     const fields = [
+		{ id: 'temp', label: 'T (°C)', isInput: true },
+		{ id: 'rh', label: 'RH (%)', isInput: true },
         { id: 'vp', label: 'Vapour Pressure (kPa)' },
         { id: 'dp', label: 'Dew Point (°C)' },
         { id: 'ah', label: 'Absolute Humidity (g/m³)' },
         { id: 'en', label: 'Enthalpy (kJ/kg)' },
-        { id: 'lm-basic', label: 'Lifetime Multiplier (basic)' },
-        { id: 'lm-strlic', label: 'Strlič LM' },
-        { id: 'years', label: 'Years to Failure' },
+        { id: 'emc-val', label: 'Wood EMC (%)' },
+        { id: 'emc-badge', label: 'Rot Risk Status' },
+        { id: 'lm-basic', label: 'LM (basic)' },
+        { id: 'lm-strlic', label: 'Paper LM' },
+        { id: 'years', label: 'Paper Lifetime (years)' },
         { id: 'lm-photo', label: 'Photographic LM' },
-        { id: 'mould', label: 'Mould Index (Johansson)' },
-        { id: 'pvc', label: 'PVC Storage Lifetime (years)' },
+        { id: 'mould', label: 'Mould Index' },
+        { id: 'pvc', label: 'PVC Lifetime (years)' },
         { id: 'cons-delta-t', label: 'Conservation Heating ΔT (to 50% RH)' },
-        { id: 'cons-target-t', label: 'Required Temp (°C)' }
+        { id: 'cons-target-t', label: 'Required Temp (°C)' },
+        { id: 'salt-list', label: 'Active Deliquescent Salts' }
     ];
 
     let csvContent = "Parameter\tValue\n";
 
     fields.forEach(field => {
-        const val = document.getElementById(field.id).textContent;
+        const el = document.getElementById(field.id);
+        // Check if it's an input field, if so use .value, otherwise use .textContent
+        const val = field.isInput ? el.value : el.textContent; 
+        
         csvContent += `${field.label}\t${val}\n`;
     });
 
