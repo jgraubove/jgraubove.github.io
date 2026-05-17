@@ -317,6 +317,15 @@ A free, simple and quick calculator for damage functions and environmental deter
 
 <h3>Model description</h3>
 
+This calculator packs as many useful transformations of a T and RH datapoint as possible. It is designed to be extremely lightweight. It can be downloaded and used offline by saving the website's html code. <br>
+<br>
+
+It does not include any assessment of uncertainties and error propagation. Users should be aware that there are three important sources of error: T and RH loggers are imprecise, using values averaged over long periods can ignore variability, and the models used have their own inherent statistical uncertainity. The combination of all three means that ouputs should be imagined with error bounds of 10% to 50%.<br>
+<br>
+
+Therefore, this calculator is best used as an educational and reference tool, to make comparisons rather than predictions, and to understand the relationships between variables. <br>
+<br>
+
 <div class="eq">
 <b>Psychrometrics</b><br>
 The calculator uses thermodynamic relationships to compute vapour pressure, dew point, absolute humidity, and enthalpy. Vapour pressure indicates how much water vapour is present in the air and is useful for comparing moisture conditions across different temperatures. Absolute humidity provides similar information, expressed as the mass of water vapour per unit volume of air. The dew point indicates the temperature at which moisture will condense, for example on colder surfaces within a room. Enthalpy can be used to estimate the cooling and dehumidification load: the higher the enthalpy, the more energy is required to cool or dehumidify the air.
@@ -622,7 +631,7 @@ if (RH >= 80) {
 document.getElementById("mould").textContent = mouldRisk.toFixed(4);
 
 /* PVC */
-const lnK = 34.2 - 10300/(T + 273.5) + 0.9*(0.86/120000) + 0.0063*(RH/100);
+const lnK = 34.2 - 10300/(T + 273.15) + 0.9*(0.86/120000) + 0.0063*(RH/100);
 const pvcLifetime = 15 / Math.exp(lnK);
 document.getElementById("pvc").textContent = pvcLifetime.toFixed(2);
 
