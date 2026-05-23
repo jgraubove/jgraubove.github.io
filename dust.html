@@ -330,7 +330,8 @@ from 'three/addons/loaders/GLTFLoader.js';
 // index.html
 // statue.glb
 
-const DEFAULT_MODEL = './statue.glb';
+const DEFAULT_MODEL =
+    new URL('./model.glb', window.location.href).href;
 
 
 // ======================================================
