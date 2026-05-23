@@ -1,731 +1,1471 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Preventive Conservation Calculator</title>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>GLB Dust Simulator</title>
 
 <style>
-:root {
-    --bg:#f4f4f9;
-    --card:#fff;
-    --primary:#3b82f6;
-    --text:#1f2937;
-    --muted:#6b7280;
-    --border:#e5e7eb;
-    --safe:#10b981;
-    --warn:#f59e0b;
-    --danger:#ef4444;
+
+:root{
+
+    --bg-color:#1a1a1a;
+
+    --panel-bg:rgba(30,30,30,0.95);
+
+    --text-color:#e0e0e0;
+
+    --accent-color:#4caf50;
+
+    --border-color:#444;
 }
 
-body {
-    font-family: system-ui;
-    background: var(--bg);
+body{
+
+    margin:0;
+
+    overflow:hidden;
+
+    background:var(--bg-color);
+
+    color:var(--text-color);
+
+    font-family:Segoe UI, Arial, sans-serif;
+}
+
+#ui-panel{
+
+    position:absolute;
+
+    top:20px;
+
+    left:20px;
+
+    width:280px;
+
+    padding:24px;
+
+    background:var(--panel-bg);
+
+    border-radius:12px;
+
+    border:1px solid var(--border-color);
+
+    z-index:100;
+}
+
+h2{
+
+    margin:0 0 20px 0;
+
+    color:white;
+}
+
+#drop-zone{
+
+    border:2px dashed #555;
+
+    border-radius:8px;
+
+    padding:25px 15px;
+
+    text-align:center;
+
+    margin-bottom:20px;
+
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+#drop-zone.drag-over{
+
+    border-color:var(--accent-color);
+
+    background:rgba(76,175,80,0.15);
+}
+
+.checkbox-wrapper{
+
     display:flex;
-    justify-content:center;
-    padding:20px;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:20px;
 }
 
-.container {
-    background:var(--card);
-    padding:25px;
-    border-radius:14px;
-    max-width:560px;
-    width:100%;
+.control-group{
+
+    margin-bottom:20px;
 }
 
-h2 { margin-top:0; }
+label{
 
-.section {
-    margin-top:18px;
-    font-weight:600;
-    color:var(--primary);
-}
-
-.input {
-    margin:10px 0;
-}
-
-label {
     display:block;
-    font-size:13px;
-    color:var(--muted);
+
+    margin-bottom:8px;
+
+    font-size:0.9rem;
 }
 
-input[type="number"] {
-    width: 100%;
+select{
+
+    width:100%;
+
     padding:8px;
-    border:1px solid var(--border);
-    border-radius:6px;
-    box-sizing: border-box;
+
+    background:#2a2a2a;
+
+    color:#fff;
+
+    border:1px solid #444;
+
+    border-radius:4px;
+
+    margin-bottom:10px;
 }
 
-/* Checkbox Label Styling */
-.toggle-label-left {
-    text-align: left;
-    font-weight: 600;
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    font-size: 14px;
+input[type="range"]{
+
+    width:100%;
+
+    margin-bottom:5px;
 }
 
-.toggle-label-left input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+.value-display{
+
+    float:right;
+
+    color:var(--accent-color);
+
+    font-weight:bold;
 }
 
-/* Advanced Inputs Container */
-.advanced-group {
-    display: none;
-    opacity: 0;
-    transform: translateY(-5px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    margin-left: 0;
+small{
+
+    color:#888;
 }
 
-.advanced-group.visible {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-    margin-left: 15px;
+#status{
+
+    font-size:0.85rem;
+
+    color:#aaa;
+
+    border-top:1px solid #333;
+
+    padding-top:10px;
 }
 
-.advanced-input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: #fff;
-    color: var(--text);
+#deltaEPanel{
+
+    position:absolute;
+
+    right:20px;
+
+    bottom:20px;
+
+    width:340px;
+
+    background:rgba(30,30,30,0.95);
+
+    border:1px solid #444;
+
+    border-radius:12px;
+
+    padding:16px;
+
+    z-index:100;
 }
 
-.result {
-    display:flex;
-    justify-content:space-between;
-    margin:6px 0;
+#deltaEStats{
+
+    margin-bottom:10px;
+
+    font-size:14px;
+
+    color:#fff;
 }
 
-.value {
-    font-weight:600;
-    color:var(--text);
-}
+#histogramCanvas{
 
-.highlight {
-    color:var(--primary);
-}
+    width:100%;
 
-.results {
-    margin-top:15px;
-    padding-top:15px;
-    border-top:1px solid var(--border);
-}
+    height:180px;
 
-/* Badge Styles */
-.badge {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 700;
-    color: white;
-    text-transform: uppercase;
-}
-.badge-safe { background-color: var(--safe); }
-.badge-warn { background-color: var(--warn); }
-.badge-danger { background-color: var(--danger); }
+    background:#181818;
 
-/* Salt List Styling */
-.salt-list {
-    font-size: 13px;
-    color: var(--text);
-    line-height: 1.4;
-    margin-top: 4px;
-}
-
-/* Button Styles */
-.copy-btn {
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: background-color 0.2s;
-    width: 100%;
-}
-
-.copy-btn:hover {
-    background-color: #2563eb;
-}
-
-.copy-btn.copied {
-    background-color: #10b981;
-}
-
-/* NEW spacing before README */
-.readme-spacer{
-    height:25px;
-}
-
-/* README */
-.readme {
-    margin-top:0;
-    padding:15px;
-    background:#fafafa;
-    border:1px solid var(--border);
-    border-radius:10px;
-}
-
-.readme h3 {
-    margin-top:0;
-}
-
-.eq {
-    margin:10px 0;
-    padding:8px;
-    background:white;
-    border:1px solid var(--border);
     border-radius:8px;
 }
 
-.bib {
-    margin-top:15px;
-    font-size:13px;
-    color:var(--muted);
-}
 </style>
+
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
 </head>
 
 <body>
 
-<div class="container">
 
-<h2>Preventive Conservation T and RH Calculator</h2>
+<div id="ui-panel">
 
-A free, simple and quick calculator for damage functions and environmental deterioration of collections, provided by the UCL Institute for Sustainable Heritage. Below you will find a <a href="#sec1">short user manual</a> and the <a href="#sec2">license and citation notes</a>.
+    <h2>Dust Simulator</h2>
 
-<!-- INPUTS -->
-<div class="section">Inputs</div>
+    <div id="drop-zone">
 
-<div class="input">
-<label>Temperature (°C)</label>
-<input id="temp" type="number" value="22">
-</div>
+        <p>Drag & Drop .GLB</p>
 
-<div class="input">
-<label>Relative Humidity (%)</label>
-<input id="rh" type="number" value="60" min="1" max="100">
-</div>
+        <small>
+            Drop a model to replace the default
+        </small>
 
-<!-- Master Toggle (Left Aligned) -->
-<div class="input">
-<label class="toggle-label-left">
-    <input type="checkbox" id="advanced-toggle" onchange="toggleAdvancedInputs()"> 
-    Enable advanced parameters for paper degradation (pH, DP)
-</label>
-</div>
-
-<!-- Advanced Inputs (Hidden by default) -->
-<div id="advanced-container" class="advanced-group">
-    <div class="input">
-        <label>Custom pH (Default: 7)</label>
-        <input id="ph-input" type="number" value="7" class="advanced-input">
     </div>
 
-    <div class="input">
-        <label>Initial Degree of Polymerization (Default: 2000)</label>
-        <input id="dp-input" type="number" value="2000" class="advanced-input">
+
+    <div class="checkbox-wrapper">
+
+        <input
+            type="checkbox"
+            id="dustToggle"
+        >
+
+        <label for="dustToggle">
+            Enable Dust
+        </label>
+
     </div>
 
-    <div class="input">
-        <label>Critical Degree of Polymerization (Default: 300)</label>
-        <input id="cdp-input" type="number" value="300" class="advanced-input">
+
+    <div class="control-group">
+
+        <label for="dustColorSelect">
+
+            Dust Type
+
+        </label>
+
+        <select id="dustColorSelect">
+
+            <option value="soot">
+                Soot (Black)
+            </option>
+
+            <option value="indoor">
+                Indoor Dust
+            </option>
+
+        </select>
+
     </div>
-</div>
 
-<div class="section">Outputs</div>
 
-<!-- PSYCHROMETRICS -->
-<div class="results">
-<div class="result"><span>Vapour Pressure (kPa)</span><span class="value" id="vp">0</span></div>
-<div class="result"><span>Dew Point (°C)</span><span class="value" id="dp">0</span></div>
-<div class="result"><span>Absolute Humidity (g/m³)</span><span class="value" id="ah">0</span></div>
-<div class="result"><span>Enthalpy (kJ/kg)</span><span class="value" id="en">0</span></div>
-</div>
+    <div class="control-group">
 
-<!-- EMC SECTION -->
-<div class="results">
-<div class="result">
-    <span>Wood Equilibrium Moisture Content (%)</span>
-    <div style="display:flex; align-items:center; gap:8px;">
-        <span class="value" id="emc-val">0</span>
-        <span id="emc-badge" class="badge badge-safe">Safe</span>
+        <label>
+
+            Monthly Coverage Rate
+
+            <span
+                id="rateVal"
+                class="value-display"
+            >
+                1%
+            </span>
+
+        </label>
+
+        <input
+            type="range"
+            id="rateSlider"
+            min="1"
+            max="10"
+            step="0.1"
+            value="1"
+        >
+
+        <small>
+            % surface accumulation per month
+        </small>
+
     </div>
-</div>
-</div>
-
-<div class="results">
-<div class="result"><span>Lifetime Multiplier (basic)</span><span class="value" id="lm-basic">0</span></div>
-</div>
-
-<div class="results">
-<div class="result"><span>Paper Lifetime Multiplier (Strlič)</span><span class="value" id="lm-strlic">0</span></div>
-<div class="result"><span>Paper Lifetime (years)</span><span class="value" id="years">0</span></div>
-</div>
-
-<div class="results">
-<div class="result"><span>Photographic Lifetime Multiplier (Fenech)</span><span class="value" id="lm-photo">0</span></div>
-</div>
-
-<div class="results">
-<div class="result"><span>Mould Index (Johansson)</span><span class="value" id="mould">0</span></div>
-</div>
-
-<div class="results">
-<div class="result"><span>PVC Lifetime (Rijavec) (years)</span><span class="value" id="pvc">0</span></div>
-</div>
-
-<!-- CONSERVATION HEATING SECTION -->
-<div class="results">
-<div class="result"><span>Conservation Heating ΔT (to 50% RH)</span><span class="value" id="cons-delta-t">0</span></div>
-<div class="result"><span>Required Temp (°C)</span><span class="value" id="cons-target-t">0</span></div>
-</div>
-
-<!-- SALT DELIQUESCENCE SECTION -->
-<div class="results">
-<div class="result">
-    <span>Active Deliquescent Salts</span>
-    <span class="value salt-list" id="salt-list">None</span>
-</div>
-</div>
-
-<!-- COPY BUTTON -->
-<button id="copy-btn" class="copy-btn" onclick="copyResults()">Copy Results to Clipboard</button>
-
-<!-- SPACER -->
-<div class="readme-spacer"></div>
-
-<!-- ================= README ================= -->
-<div class="readme"  id="sec1">
-
-<h3>Model description</h3>
-
-This calculator packs as many useful transformations of a T and RH datapoint as possible. It is designed to be extremely lightweight. It can be downloaded and used offline by saving the website's html code. <br>
-<br>
-
-It does not include any assessment of uncertainties and error propagation. Users should be aware that there are three important sources of error: T and RH loggers are imprecise, using values averaged over long periods can ignore variability, and the models used have their own inherent statistical uncertainity. The combination of all three means that ouputs should be imagined with error bounds of 10% to 50%.<br>
-<br>
-
-Therefore, this calculator is best used as an educational and reference tool, to make comparisons rather than predictions, and to understand the relationships between variables. <br>
-<br>
-
-<div class="eq">
-<b>Psychrometrics</b><br>
-The calculator uses thermodynamic relationships to compute vapour pressure, dew point, absolute humidity, and enthalpy. Vapour pressure indicates how much water vapour is present in the air and is useful for comparing moisture conditions across different temperatures. Absolute humidity provides similar information, expressed as the mass of water vapour per unit volume of air. The dew point indicates the temperature at which moisture will condense, for example on colder surfaces within a room. Enthalpy can be used to estimate the cooling and dehumidification load: the higher the enthalpy, the more energy is required to cool or dehumidify the air.
-</div>
-
-<div class="eq">
-<b>Wood EMC & Rot Risk</b><br>
-This is based on the Simpson equation to estimate the Equilibrium Moisture Content (EMC) of wood, assuming stable environmental conditions over a long period of time. The risk of fungal growth in wood varies depending on the wood species, so the following thresholds are indicative only.<br>
-• < 20%: Safe (No rot risk)<br>
-• 20–28%: Caution (Susceptible)<br>
-• > 28%: High Risk (Fungal growth likely)
-</div>
-
-<div class="eq">
-<b>Basic Lifetime Multiplier</b><br>
-A value &gt; 1 indicates an extended lifetime compared to the reference (20°C, 50% RH); &lt; 1 indicates a shortened life. This is calculated as the ratio of reaction rates using the Arrhenius equation, which broadly reflects the temperature dependence of chemical degradation.  This equation has been superseded in the case of cellulose, but it remains a useful "no-assumption" metric for a more general indicator of the hydrolysis of organic materials. It is best used to compare two environments rather than to make specific predictions about any given environment. 
-</div>
-
-<div class="eq">
-<b>Paper lifetime using Strlič model</b><br>
-Unlike the basic model, this equation incorporates <strong>paper pH</strong>, where lower acidity significantly increases the rate of deterioration. <br>
-The underlying damage function calculates the degradation rate, which can yield a Lifetime Multiplier or an estimated lifetime in years. 
- 
-To estimate a lifetime, the model requires the <strong>initial Degree of Polymerization (DP)</strong> (typically ~2000 for fresh paper) and a <strong>critical DP</strong> (usually 300), representing the point where paper becomes too brittle to handle. 
-        DP reflects the average chain length of cellulose molecules. For a fuller implementation of this model, see the <a href="https://hsll.shinyapps.io/COL_DEM_3/" target="_blank" style="color:var(--primary);">the Collections Demography App</a>.
-</div>
-
-<div class="eq">
-<b>Photographic lifetime multiplier</b><br>
-This calculation uses the damage function by Fenech et al. This damage function predicts color change. It includes Acetic Acid, which is assumed to be absent in this case. The lifetime multiplier is calculated by dividing the rate at 50% RH and 20ºC by the rate at the actual conditions. 
-</div>
-
-<div class="eq">
-<b>Mould growth (Polynomial)</b><br>
-The model by Johansson et al. is one of many methods to convert T and RH into mould risk. Their index indicates mould activity. This means that any value higher than 0 indicates the potential for mould growth. It is calculated by multiplying two indices, one that indicates the sensitivity to T and other the sensitivity to RH. The equations used here are obtained by fitting curves into the visualisations of their original paper. Their model includes a time-effect, ignored here: if the conditions are not favourable in the recent past, the mould index should be penalised. This kind of analysis requires a time-series of T and RH. 
-</div>
-
-<div class="eq">
-<b>PVC storage lifetime</b><br>
-This calculation uses the damage function by Rijavec et al. The function predicts color change. Following the authors, lifetime is defined as the time until the color has changed 15 Delta E units (this is a standard way of measuring color change). Their equation includes the molecular weight of PVC and the percentage of plasticiser, which are taken here as the average values in the author's dataset. The results are not highly sensitive to these values. 
-</div>
 
 
-<div class="eq">
-<b>Conservation Heating</b><br>
-Calculates the temperature increase required to reduce Relative Humidity to 50% while maintaining constant absolute moisture content. This is a strategy used in places where dehumidifcation is not viable, for example in historic houses. Naturally, the objective is not always 50%RH.
-</div>
+    <div class="control-group">
 
-<div class="eq">
-<b>Salt Deliquescence</b><br>
-Lists salts that are likely to deliquesce (absorb moisture and dissolve) at the current Relative Humidity (RH), based on approximate critical RH thresholds at around 20 °C.<br>
-• Ca(NO₃)₂ (>55%)<br>
-• NaNO₃ (>74%)<br>
-• NaCl (>75%)<br>
-• Na₂SO₄ (>80%)<br>
-• MgSO₄ (>84%)<br>
-• KNO₃ (>94%)<br>
-In reality, salt behaviour also depends on temperature, salt mixtures and hydration states. Mixed salt systems can behave very differently from pure salts, often lowering deliquescence thresholds. More advanced thermodynamic modelling of these processes can be performed using tools such as <a href="http://science.sdf-eu.org/runsalt/" target="_blank" rel="noopener noreferrer">
-RUNSALT
-</a>.
-</div>
+        <label>
 
-<div class="bib">
-<h4>References</h4>
-- Strlič, Matija, et al. "Damage function for historic paper. Part III: Isochrones and demography of collections." Heritage Science 3.1 (2015): 1-11.<br>
-<br>
-- Rijavec, Tjaša, Matija Strlič, and Irena Kralj Cigić. "Damage function for poly (vinyl chloride) in heritage collections." Polymer Degradation and Stability 211 (2023): 110329.<br>
-<br>
-- Fenech, Ann, et al. "Modelling the lifetime of colour photographs in archival collections." Studies in Conservation 58.2 (2013): 107-116.<br>
-<br>
-- Johansson, Sanne, Lars Wadsö, and Kenneth Sandin. "Estimation of mould growth levels on rendered façades based on surface relative humidity and surface temperature measurements." Building and Environment 45.5 (2010): 1153-1160.<br>
-<br>
--Simpson, William Turner. Equilibrium moisture content of wood in outdoor locations in the United States and worldwide. Vol. 268. US Department of Agriculture, Forest Service, Forest Products Laboratory, 1998.<br>
-</div>
+            Time Passed
+
+            <span
+                id="timeVal"
+                class="value-display"
+            >
+                0 Years
+            </span>
+
+        </label>
+
+        <input
+            type="range"
+            id="timeSlider"
+            min="0"
+            max="5"
+            step="0.1"
+            value="0"
+        >
+
+        <small>
+            Years of accumulation
+        </small>
+
+    </div>
+
+
+    <div id="status">
+
+        Loading...
+
+    </div>
 
 </div>
 
-<div class="readme-spacer"></div>
 
-<!-- LICENSING & CITATION BLOCK -->
-<div class="readme" id="sec2">
-    <h3>Licensing & Citation</h3>
-	<div class="eq">
-			<b>License &amp; Scientific Content</b><br>
-			This calculator uses publicly available scientific results published in the heritage science domain. These underlying scientific models remain with their original licences and should be cited independently by users.
-			<br><br>
-			The source code and web implementation of this interface are licensed and distributed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;">GNU General Public License v3.0 (GPL-3.0)</a>. You are free to copy, distribute, and modify this software under the terms of the GPL-3.0.
-		</div>
-    <div class="eq">
-        <b>Citation</b><br>
-			<p>If you use this calculator in your research or publications, you can cite it as:</p>
-			<br>
-			<p><i>Grau-Bové, Josep. (2026). "Preventive Conservation T and RH Calculator". UCL Institute for Sustainable Heritage.</i></p>
-			<br>
-			<p><strong>BibTeX:</strong></p>
-<pre style="background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; font-family: monospace; overflow-x: auto; margin: 0; text-align: left; width: 100%; box-sizing: border-box;">
-@misc{GrauBove2026,
-  author = {Josep Grau-Bové},
-  title = {Preventive Conservation T and RH Calculator},
-  year = {2026},
-  institution = {UCL Institute for Sustainable Heritage},
-  url = {https://jgraubove.github.io/app.html},
-  note = {Accessed: \today}
+<div id="deltaEPanel">
+
+    <div id="deltaEStats">
+
+        ΔE > 1.5 Surface: 0%
+
+    </div>
+
+    <canvas
+        id="histogramCanvas"
+        width="320"
+        height="180"
+    ></canvas>
+
+</div>
+
+
+
+<script type="module">
+
+import * as THREE from 'three';
+
+import {
+    OrbitControls
 }
-</pre>
-    </div>
-</div>
+from 'three/addons/controls/OrbitControls.js';
+
+import {
+    GLTFLoader
+}
+from 'three/addons/loaders/GLTFLoader.js';
 
 
-</div>
+// ======================================================
+// DEFAULT MODEL
+// ======================================================
+
+const DEFAULT_MODEL =
+    'https://jgraubove.github.io/model.glb';
 
 
+// ======================================================
+// SCENE
+// ======================================================
 
-<script>
+const scene = new THREE.Scene();
 
-const Tref = 20;
-const RHref = 50;
+scene.background =
+    new THREE.Color(0x1a1a1a);
 
-// Master toggle function
-function toggleAdvancedInputs() {
-    const checkbox = document.getElementById("advanced-toggle");
-    const container = document.getElementById("advanced-container");
-    const inputs = [
-        document.getElementById("ph-input"),
-        document.getElementById("dp-input"),
-        document.getElementById("cdp-input")
-    ];
 
-    if (checkbox.checked) {
-        container.classList.add("visible");
-        inputs.forEach(input => input.disabled = false);
-    } else {
-        container.classList.remove("visible");
-        inputs.forEach(input => input.disabled = true);
+// ======================================================
+// CAMERA
+// ======================================================
+
+const camera =
+    new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth
+            / window.innerHeight,
+        0.01,
+        1000
+    );
+
+camera.position.set(3,3,5);
+
+
+// ======================================================
+// RENDERER
+// ======================================================
+
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias:true
+    });
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio,2)
+);
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+document.body.appendChild(
+    renderer.domElement
+);
+
+
+// ======================================================
+// CONTROLS
+// ======================================================
+
+const controls =
+    new OrbitControls(
+        camera,
+        renderer.domElement
+    );
+
+controls.enableDamping = true;
+
+
+// ======================================================
+// LIGHTING
+// ======================================================
+
+scene.add(
+    new THREE.AmbientLight(
+        0xffffff,
+        1.2
+    )
+);
+
+const dir1 =
+    new THREE.DirectionalLight(
+        0xffffff,
+        2
+    );
+
+dir1.position.set(5,10,5);
+
+scene.add(dir1);
+
+const dir2 =
+    new THREE.DirectionalLight(
+        0xffffff,
+        1
+    );
+
+dir2.position.set(-5,5,-5);
+
+scene.add(dir2);
+
+
+// ======================================================
+// UI
+// ======================================================
+
+const dropZone =
+    document.getElementById('drop-zone');
+
+const dustToggle =
+    document.getElementById('dustToggle');
+
+const dustColorSelect =
+    document.getElementById('dustColorSelect');
+
+const rateSlider =
+    document.getElementById('rateSlider');
+
+const rateVal =
+    document.getElementById('rateVal');
+
+const timeSlider =
+    document.getElementById('timeSlider');
+
+const timeVal =
+    document.getElementById('timeVal');
+
+const statusDiv =
+    document.getElementById('status');
+
+const histogramCanvas =
+    document.getElementById(
+        'histogramCanvas'
+    );
+
+const histCtx =
+    histogramCanvas.getContext('2d');
+
+const deltaEStats =
+    document.getElementById(
+        'deltaEStats'
+    );
+
+
+// ======================================================
+// STATE
+// ======================================================
+
+let currentModel = null;
+
+
+// ======================================================
+// DUST COLORS
+// ======================================================
+
+const DUST_COLORS = {
+
+    soot:
+        new THREE.Color(
+            0.02,
+            0.02,
+            0.02
+        ),
+
+    indoor:
+        new THREE.Color(
+            0.42,
+            0.38,
+            0.32
+        )
+};
+
+
+// ======================================================
+// STATUS
+// ======================================================
+
+function setStatus(msg, type="neutral"){
+
+    statusDiv.textContent = msg;
+
+    if(type === "error"){
+
+        statusDiv.style.color =
+            "#ff6b6b";
     }
-    
-    calculate();
+    else if(type === "success"){
+
+        statusDiv.style.color =
+            "#4caf50";
+    }
+    else{
+
+        statusDiv.style.color =
+            "#aaa";
+    }
 }
 
-const temp = document.getElementById("temp");
-const rh = document.getElementById("rh");
 
-[temp, rh, 
- document.getElementById("ph-input"),
- document.getElementById("dp-input"),
- document.getElementById("cdp-input")]
-.forEach(e => e.addEventListener("input", calculate));
+// ======================================================
+// COLOR SCIENCE
+// ======================================================
 
-function calculate(){
+function rgbToLab(color){
 
-const T = parseFloat(temp.value);
-const RH = parseFloat(rh.value);
+    function pivot(n){
 
-if(isNaN(T)||isNaN(RH)) return;
+        return n > 0.008856
+            ? Math.pow(n,1/3)
+            : (7.787 * n) + 16/116;
+    }
 
-/* PSYCHROMETRICS */
-const A=17.27,B=237.7;
-const Ps=0.61078*Math.exp((A*T)/(B+T));
-const Pv=Ps*RH/100;
-const Td=(B*Math.log(Pv/0.61078))/(A-Math.log(Pv/0.61078));
-const AH=(216.7*Pv)/(T+273.15);
-const h=1.006*T + (0.622*Pv/(101.325-Pv))*(2501+1.86*T);
+    let r = color.r;
+    let g = color.g;
+    let b = color.b;
 
-document.getElementById("vp").textContent = Pv.toFixed(3);
-document.getElementById("dp").textContent = Td.toFixed(2);
-document.getElementById("ah").textContent = AH.toFixed(2);
-document.getElementById("en").textContent = h.toFixed(2);
+    r = r > 0.04045
+        ? Math.pow((r+0.055)/1.055,2.4)
+        : r/12.92;
 
-/* =========================================================
-   USDA WOOD HANDBOOK EMC CALCULATION
-   ========================================================= */
-function calculateEMC(T, RH) {
-    const h = RH / 100.0;
-    const W = 349 + 1.29 * T + 0.0135 * T * T;
-    const K = 0.805 + 0.000736 * T - 0.00000273 * T * T;
-    const K1 = 6.27 - 0.00938 * T - 0.000303 * T * T;
-    const K2 = 1.91 + 0.0407 * T - 0.000293 * T * T;
-    const kh = Math.min(K * h, 0.9999);
-    const term1 = kh / (1 - kh);
-    const term2 = (K1 * kh + 2 * K1 * K2 * kh * kh) / (1 + K1 * kh + K1 * K2 * kh * kh);
-    let emc = (1800 / W) * (term1 + term2);
-    return emc;
+    g = g > 0.04045
+        ? Math.pow((g+0.055)/1.055,2.4)
+        : g/12.92;
+
+    b = b > 0.04045
+        ? Math.pow((b+0.055)/1.055,2.4)
+        : b/12.92;
+
+    let x =
+        (r*0.4124 + g*0.3576 + b*0.1805)
+        / 0.95047;
+
+    let y =
+        (r*0.2126 + g*0.7152 + b*0.0722);
+
+    let z =
+        (r*0.0193 + g*0.1192 + b*0.9505)
+        / 1.08883;
+
+    x = pivot(x);
+    y = pivot(y);
+    z = pivot(z);
+
+    return {
+
+        L:(116*y)-16,
+
+        a:500*(x-y),
+
+        b:200*(y-z)
+    };
 }
 
-const finalEmc = calculateEMC(T, RH);
+function deltaE76(c1,c2){
 
-const emcValEl = document.getElementById("emc-val");
-const emcBadgeEl = document.getElementById("emc-badge");
+    const lab1 = rgbToLab(c1);
 
-emcValEl.textContent = finalEmc.toFixed(1);
+    const lab2 = rgbToLab(c2);
 
-if (finalEmc < 20) {
-    emcBadgeEl.className = "badge badge-safe";
-    emcBadgeEl.textContent = "Safe";
-} else if (finalEmc <= 28) {
-    emcBadgeEl.className = "badge badge-warn";
-    emcBadgeEl.textContent = "Caution";
-} else {
-    emcBadgeEl.className = "badge badge-danger";
-    emcBadgeEl.textContent = "High";
-}
+    return Math.sqrt(
 
-/* BASIC LM */
-const Ea=115000,R=8.314;
+        Math.pow(lab1.L-lab2.L,2)
 
-function k_basic(T,RH){
-    const RHf = RH/100;
-    return Math.exp(
-        (Ea/R)*((1/(Tref+273.15))-(1/(T+273.15)))
-        + Math.log(RHf/(RHref/100))
+        +
+
+        Math.pow(lab1.a-lab2.a,2)
+
+        +
+
+        Math.pow(lab1.b-lab2.b,2)
     );
 }
 
-const k0 = k_basic(Tref,RHref);
-const k1 = k_basic(T,RH);
-const lmBasic = k0/k1;
-document.getElementById("lm-basic").textContent = lmBasic.toFixed(2);
 
-/* STRLIC & ADVANCED LOGIC */
-const useAdvanced = document.getElementById("advanced-toggle").checked;
-const pH = useAdvanced ? parseFloat(document.getElementById("ph-input").value) : 7;
-const dp = useAdvanced ? parseFloat(document.getElementById("dp-input").value) : 2000;
-const cdp = useAdvanced ? parseFloat(document.getElementById("cdp-input").value) : 300;
+// ======================================================
+// SHADER
+// ======================================================
 
-const safePH = isNaN(pH) ? 7 : pH;
-const safeDP = isNaN(dp) ? 2000 : dp;
-const safeCDP = isNaN(cdp) ? 300 : cdp;
+function injectDustShader(material){
 
-function strlicK(T, RH, pH) {
+    if(material.userData.dustInjected)
+        return;
 
-    const RHf = RH / 100;
+    material.userData.dustInjected = true;
 
-    const A = 38.039;
-    const B = 38.057;
-    const C = 1.67*T - 285.655;
-    const D = 2.491 - 0.012*T;
-    const E = 0.24;
-    const F = 14713;
+    material.userData.dustUniforms = {
 
-    const term1 = Math.pow(Math.log(1 - RHf) / C, 1 / D);
-    const term2 = E * Math.log(Math.pow(10, -pH));
-    const term3 = F / (T + 273.15);
+        uDustOpacity: {
+            value: 0.0
+        },
 
-    const ln_k = A + B * term1 + term2 - term3;
+        uDustColor: {
+            value: DUST_COLORS.soot.clone()
+        }
+    };
 
-    return Math.exp(ln_k);
+    material.onBeforeCompile = (shader)=>{
+
+        shader.uniforms.uDustOpacity =
+            material.userData.dustUniforms.uDustOpacity;
+
+        shader.uniforms.uDustColor =
+            material.userData.dustUniforms.uDustColor;
+
+        shader.vertexShader =
+            shader.vertexShader.replace(
+                '#include <common>',
+                `
+                #include <common>
+
+                varying vec3 vWorldNormal;
+                `
+            );
+
+        shader.vertexShader =
+            shader.vertexShader.replace(
+                '#include <beginnormal_vertex>',
+                `
+                #include <beginnormal_vertex>
+
+                vWorldNormal =
+                    normalize(
+                        mat3(modelMatrix)
+                        * objectNormal
+                    );
+                `
+            );
+
+        shader.fragmentShader =
+            shader.fragmentShader.replace(
+                '#include <common>',
+                `
+                #include <common>
+
+                varying vec3 vWorldNormal;
+
+                uniform float uDustOpacity;
+
+                uniform vec3 uDustColor;
+                `
+            );
+
+        shader.fragmentShader =
+            shader.fragmentShader.replace(
+                '#include <dithering_fragment>',
+                `
+                float upwardness =
+                    max(vWorldNormal.y,0.0);
+
+                float dustFactor =
+                    clamp(
+                        upwardness
+                        * uDustOpacity,
+                        0.0,
+                        1.0
+                    );
+
+                gl_FragColor.rgb *=
+                    (1.0 - dustFactor);
+
+                gl_FragColor.rgb +=
+                    uDustColor
+                    * dustFactor;
+
+                #include <dithering_fragment>
+                `
+            );
+    };
+
+    material.needsUpdate = true;
 }
 
-const k = strlicK(T,RH,safePH);
-const kref = strlicK(Tref,RHref,safePH);
 
-let lmStrlic = kref/k;
-let years = 0;
+// ======================================================
+// OPACITY
+// ======================================================
 
-if(isFinite(k) && safeCDP > 0 && safeDP > safeCDP){
-    const term = (1/safeCDP)-(1/safeDP);
-    years = term / k;
+function calculateTotalOpacity(){
+
+    const rate =
+        parseFloat(rateSlider.value);
+
+    const years =
+        parseFloat(timeSlider.value);
+
+    const months = years * 12.0;
+
+    let total =
+        (rate * months) / 100.0;
+
+    return Math.min(total,1.0);
 }
 
-document.getElementById("lm-strlic").textContent = isFinite(lmStrlic) ? lmStrlic.toFixed(2) : "0";
-document.getElementById("years").textContent = years > 0 ? years.toFixed(1) : "0";
 
-/* PHOTO */
-function photoK(T,RH){
-    return Math.exp(32 + 0.01*RH - 11*(1000/(T+273.15)));
-}
+// ======================================================
+// HISTOGRAM
+// ======================================================
 
-const k_curr = photoK(T, RH);
-const k_ref = photoK(Tref, RHref);
-const photoLM = k_ref / k_curr; 
-document.getElementById("lm-photo").textContent = photoLM.toFixed(2);
+function drawHistogram(bins){
 
-/* MOULD RISK (Polynomial Model) */
-let mouldRisk = 0;
+    const w =
+        histogramCanvas.width;
 
-if (RH >= 80) {
-    const x_rh = RH;
-    const x_t = T;
+    const h =
+        histogramCanvas.height;
 
-    const f_rh = 
-        2.3428970351649641e+04 * Math.pow(x_rh, 0) +
-        -1.3477153446957620e+03 * Math.pow(x_rh, 1) +
-        3.0989753435530606e+01 * Math.pow(x_rh, 2) +
-        -3.5606009248969933e-01 * Math.pow(x_rh, 3) +
-        2.0440903212602399e-03 * Math.pow(x_rh, 4) +
-        -4.6903493958305966e-06 * Math.pow(x_rh, 5);
+    histCtx.clearRect(0,0,w,h);
 
-    const f_t = 
-        2.1075647666889630e-02 * Math.pow(x_t, 0) +
-        2.2159227484411737e-02 * Math.pow(x_t, 1) +
-        -2.8709675522291311e-02 * Math.pow(x_t, 2) +
-        1.8402251509710157e-02 * Math.pow(x_t, 3) +
-        -4.8965589293262727e-03 * Math.pow(x_t, 4) +
-        7.0360928395280182e-04 * Math.pow(x_t, 5) +
-        -5.9596394077108954e-05 * Math.pow(x_t, 6) +
-        3.0565769866083325e-06 * Math.pow(x_t, 7) +
-        -9.3056256370777249e-08 * Math.pow(x_t, 8) +
-        1.5435702013423972e-09 * Math.pow(x_t, 9) +
-        -1.0724269336886679e-11 * Math.pow(x_t, 10);
+    histCtx.fillStyle =
+        '#181818';
 
-    mouldRisk = f_rh * f_t;
-    if (mouldRisk < 0) mouldRisk = 0;
-}
+    histCtx.fillRect(0,0,w,h);
 
-document.getElementById("mould").textContent = mouldRisk.toFixed(4);
 
-/* PVC */
-const lnK = 34.2 - 10300/(T + 273.15) + 0.9*(0.86/120000) + 0.0063*(RH/100);
-const pvcLifetime = 15 / Math.exp(lnK);
-document.getElementById("pvc").textContent = pvcLifetime.toFixed(2);
+    // =========================================
+    // REMOVE EMPTY BINS
+    // =========================================
 
-/* CONSERVATION HEATING */
-const targetRH = 50;
-const Ps_target_calc = Pv / (targetRH / 100);
+    const filtered = [];
 
-let consDeltaT = 0;
-let consTargetT = 0;
+    for(let i=1;i<bins.length;i++){
 
-if (Ps_target_calc > 0 && Ps_target_calc < 100) {
-    const X = Math.log(Ps_target_calc / 0.61078);
-    const T_new = (X * B) / (A - X);
-    consTargetT = T_new;
-    consDeltaT = T_new - T;
-}
+        if(bins[i] > 0){
 
-document.getElementById("cons-delta-t").textContent = consDeltaT.toFixed(2);
-document.getElementById("cons-target-t").textContent = consTargetT.toFixed(2);
+            filtered.push({
 
-/* SALT DELIQUESCENCE LOGIC */
-const saltListEl = document.getElementById("salt-list");
-const activeSalts = [];
+                value: bins[i],
 
-// Thresholds (approximate CRH at 20°C)
-if (RH > 55) activeSalts.push("Ca(NO₃)₂");
-if (RH > 74) activeSalts.push("NaNO₃");
-if (RH > 75) activeSalts.push("NaCl");
-if (RH > 80) activeSalts.push("Na₂SO₄");
-if (RH > 84) activeSalts.push("MgSO₄");
-if (RH > 94) activeSalts.push("KNO₃");
+                index: i
+            });
+        }
+    }
 
-if (activeSalts.length === 0) {
-    saltListEl.textContent = "None";
-} else {
-    saltListEl.textContent = activeSalts.join(", ");
-}
+    // Nothing to draw
+    if(filtered.length === 0){
 
-}
+        histCtx.fillStyle =
+            '#888';
 
-function copyResults() {
-    const fields = [
-		{ id: 'temp', label: 'T (°C)', isInput: true },
-		{ id: 'rh', label: 'RH (%)', isInput: true },
-        { id: 'vp', label: 'Vapour Pressure (kPa)' },
-        { id: 'dp', label: 'Dew Point (°C)' },
-        { id: 'ah', label: 'Absolute Humidity (g/m³)' },
-        { id: 'en', label: 'Enthalpy (kJ/kg)' },
-        { id: 'emc-val', label: 'Wood EMC (%)' },
-        { id: 'emc-badge', label: 'Rot Risk Status' },
-        { id: 'lm-basic', label: 'LM (basic)' },
-        { id: 'lm-strlic', label: 'Paper LM' },
-        { id: 'years', label: 'Paper Lifetime (years)' },
-        { id: 'lm-photo', label: 'Photographic LM' },
-        { id: 'mould', label: 'Mould Index' },
-        { id: 'pvc', label: 'PVC Lifetime (years)' },
-        { id: 'cons-delta-t', label: 'Conservation Heating ΔT (to 50% RH)' },
-        { id: 'cons-target-t', label: 'Required Temp (°C)' },
-        { id: 'salt-list', label: 'Active Deliquescent Salts' }
-    ];
+        histCtx.font =
+            '14px Segoe UI';
 
-    let csvContent = "Parameter\tValue\n";
+        histCtx.fillText(
+            'No visible ΔE distribution',
+            20,
+            40
+        );
 
-    fields.forEach(field => {
-        const el = document.getElementById(field.id);
-        // Check if it's an input field, if so use .value, otherwise use .textContent
-        const val = field.isInput ? el.value : el.textContent; 
-        
-        csvContent += `${field.label}\t${val}\n`;
+        return;
+    }
+
+
+    // =========================================
+    // GRAPH SCALING
+    // =========================================
+
+    const max =
+        Math.max(
+            ...filtered.map(b=>b.value)
+        );
+
+    const barWidth =
+        w / filtered.length;
+
+
+    // =========================================
+    // DRAW BARS
+    // =========================================
+
+    filtered.forEach((bin,i)=>{
+
+        const barHeight =
+            (bin.value / max)
+            * (h - 50);
+
+        // Highlight bins above ΔE 1.5
+        histCtx.fillStyle =
+            bin.index > 1
+            ? '#4caf50'
+            : '#666';
+
+        histCtx.fillRect(
+
+            i * barWidth + 2,
+
+            h - barHeight - 25,
+
+            barWidth - 4,
+
+            barHeight
+        );
+
+
+        // Bin labels
+        histCtx.fillStyle =
+            '#aaa';
+
+        histCtx.font =
+            '10px Segoe UI';
+
+        histCtx.fillText(
+
+            bin.index.toString(),
+
+            i * barWidth + 4,
+
+            h - 8
+        );
     });
 
-    navigator.clipboard.writeText(csvContent).then(() => {
-        const btn = document.getElementById('copy-btn');
-        const originalText = btn.textContent;
-        
-        btn.textContent = "Copied!";
-        btn.classList.add('copied');
-        
-        setTimeout(() => {
-            btn.textContent = originalText;
-            btn.classList.remove('copied');
-        }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy to clipboard. Please try again.');
+
+    // =========================================
+    // TITLE
+    // =========================================
+
+    histCtx.fillStyle =
+        '#fff';
+
+    histCtx.font =
+        '13px Segoe UI';
+
+    histCtx.fillText(
+        'ΔE Distribution',
+        10,
+        16
+    );
+
+
+    // =========================================
+    // THRESHOLD LINE
+    // =========================================
+
+    for(let i=0;i<filtered.length;i++){
+
+        if(filtered[i].index >= 2){
+
+            const x =
+                i * barWidth;
+
+            histCtx.strokeStyle =
+                '#ffffff44';
+
+            histCtx.beginPath();
+
+            histCtx.moveTo(x,25);
+
+            histCtx.lineTo(x,h-20);
+
+            histCtx.stroke();
+
+            histCtx.fillStyle =
+                '#fff';
+
+            histCtx.font =
+                '11px Segoe UI';
+
+            histCtx.fillText(
+                'ΔE 1.5',
+                x + 4,
+                36
+            );
+
+            break;
+        }
+    }
+}
+
+
+// ======================================================
+// DELTA E ANALYSIS
+// ======================================================
+
+function updateDeltaEAnalysis(){
+
+    if(!currentModel) return;
+
+    const enabled =
+        dustToggle.checked;
+
+    if(!enabled){
+
+        deltaEStats.textContent =
+            'ΔE > 1.5 Surface: 0%';
+
+        drawHistogram(
+            new Array(20).fill(0)
+        );
+
+        return;
+    }
+
+    const opacity =
+        calculateTotalOpacity();
+
+    const dustColor =
+        DUST_COLORS[
+            dustColorSelect.value
+        ];
+
+    const bins =
+        new Array(20).fill(0);
+
+    let aboveThreshold = 0;
+
+    let totalSamples = 0;
+
+    currentModel.traverse((child)=>{
+
+        if(!child.isMesh) return;
+
+        const geometry =
+            child.geometry;
+
+        const normals =
+            geometry.attributes.normal;
+
+        if(!normals) return;
+
+        const materials =
+            Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+        materials.forEach((material)=>{
+
+            const baseColor =
+                material.color
+                ? material.color.clone()
+                : new THREE.Color(1,1,1);
+
+            for(
+                let i=0;
+                i<normals.count;
+                i+=5
+            ){
+
+                const ny =
+                    normals.getY(i);
+
+                const upwardness =
+                    Math.max(ny,0);
+
+                const dustFactor =
+                    Math.min(
+                        upwardness * opacity,
+                        1.0
+                    );
+
+                const dusted =
+                    baseColor.clone()
+                    .lerp(
+                        dustColor,
+                        dustFactor
+                    );
+
+                const dE =
+                    deltaE76(
+                        baseColor,
+                        dusted
+                    );
+
+                const bin =
+                    Math.min(
+                        19,
+                        Math.floor(dE)
+                    );
+
+                bins[bin]++;
+
+                if(dE > 1.5){
+
+                    aboveThreshold++;
+                }
+
+                totalSamples++;
+            }
+        });
+    });
+
+    const percentage =
+        totalSamples > 0
+        ? (
+            aboveThreshold
+            / totalSamples
+        ) * 100
+        : 0;
+
+    deltaEStats.textContent =
+        `ΔE > 1.5 Surface: ${percentage.toFixed(1)}%`;
+
+    drawHistogram(bins);
+}
+
+
+// ======================================================
+// CLEAR MODEL
+// ======================================================
+
+function clearCurrentModel(){
+
+    if(!currentModel) return;
+
+    scene.remove(currentModel);
+
+    currentModel.traverse((child)=>{
+
+        if(!child.isMesh) return;
+
+        child.geometry.dispose();
+
+        const materials =
+            Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+        materials.forEach((m)=>{
+
+            if(m.map) m.map.dispose();
+
+            m.dispose();
+        });
     });
 }
 
-window.onload = function() {
-    toggleAdvancedInputs();
-    calculate();
-};
+
+// ======================================================
+// PROCESS MODEL
+// ======================================================
+
+function processLoadedModel(model){
+
+    clearCurrentModel();
+
+    currentModel = model;
+
+    currentModel.traverse((child)=>{
+
+        if(!child.isMesh) return;
+
+        child.castShadow = true;
+
+        child.receiveShadow = true;
+
+        child.geometry.computeVertexNormals();
+
+        const materials =
+            Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+        materials.forEach((material)=>{
+
+            if(
+                material.isMeshStandardMaterial
+                ||
+                material.isMeshPhysicalMaterial
+            ){
+                injectDustShader(material);
+            }
+        });
+    });
+
+    centerAndFrameModel(currentModel);
+
+    scene.add(currentModel);
+
+    applyDustEffect();
+}
+
+
+// ======================================================
+// LOAD GLB
+// ======================================================
+
+function loadGLB(path,label="Model"){
+
+    setStatus(`Loading ${label}...`);
+
+    const loader = new GLTFLoader();
+
+    loader.load(
+
+        path,
+
+        (gltf)=>{
+
+            processLoadedModel(
+                gltf.scene
+            );
+
+            setStatus(
+                `${label} loaded`,
+                "success"
+            );
+        },
+
+        undefined,
+
+        (err)=>{
+
+            console.error(err);
+
+            setStatus(
+                `Failed to load ${label}`,
+                "error"
+            );
+        }
+    );
+}
+
+
+// ======================================================
+// FRAME MODEL
+// ======================================================
+
+function centerAndFrameModel(model){
+
+    const box =
+        new THREE.Box3()
+        .setFromObject(model);
+
+    const center =
+        box.getCenter(
+            new THREE.Vector3()
+        );
+
+    const size =
+        box.getSize(
+            new THREE.Vector3()
+        );
+
+    model.position.sub(center);
+
+    const maxDim =
+        Math.max(
+            size.x,
+            size.y,
+            size.z
+        );
+
+    const distance =
+        maxDim * 1.8;
+
+    camera.position.set(
+        distance,
+        distance,
+        distance
+    );
+
+    camera.near = maxDim / 100;
+
+    camera.far = maxDim * 100;
+
+    camera.updateProjectionMatrix();
+
+    controls.target.set(0,0,0);
+
+    controls.update();
+}
+
+
+// ======================================================
+// APPLY DUST
+// ======================================================
+
+function applyDustEffect(){
+
+    if(!currentModel) return;
+
+    const enabled =
+        dustToggle.checked;
+
+    const opacity =
+        enabled
+        ? calculateTotalOpacity()
+        : 0.0;
+
+    const dustColor =
+        DUST_COLORS[
+            dustColorSelect.value
+        ];
+
+    currentModel.traverse((child)=>{
+
+        if(!child.isMesh) return;
+
+        const materials =
+            Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+        materials.forEach((material)=>{
+
+            if(material.userData.dustUniforms){
+
+                material.userData
+                    .dustUniforms
+                    .uDustOpacity
+                    .value = opacity;
+
+                material.userData
+                    .dustUniforms
+                    .uDustColor
+                    .value
+                    .copy(dustColor);
+            }
+        });
+    });
+
+    updateDeltaEAnalysis();
+}
+
+
+// ======================================================
+// DRAG + DROP
+// ======================================================
+
+[
+    'dragenter',
+    'dragover',
+    'dragleave',
+    'drop'
+].forEach((eventName)=>{
+
+    dropZone.addEventListener(
+        eventName,
+        (e)=>{
+
+            e.preventDefault();
+
+            e.stopPropagation();
+        },
+        false
+    );
+});
+
+[
+    'dragenter',
+    'dragover'
+].forEach((eventName)=>{
+
+    dropZone.addEventListener(
+        eventName,
+        ()=>{
+
+            dropZone.classList.add(
+                'drag-over'
+            );
+        },
+        false
+    );
+});
+
+[
+    'dragleave',
+    'drop'
+].forEach((eventName)=>{
+
+    dropZone.addEventListener(
+        eventName,
+        ()=>{
+
+            dropZone.classList.remove(
+                'drag-over'
+            );
+        },
+        false
+    );
+});
+
+dropZone.addEventListener(
+    'drop',
+    (e)=>{
+
+        const file =
+            e.dataTransfer.files[0];
+
+        if(!file) return;
+
+        if(
+            !file.name
+            .toLowerCase()
+            .endsWith('.glb')
+        ){
+
+            setStatus(
+                "Please drop a GLB file",
+                "error"
+            );
+
+            return;
+        }
+
+        const url =
+            URL.createObjectURL(file);
+
+        loadGLB(url,file.name);
+    }
+);
+
+
+// ======================================================
+// UI EVENTS
+// ======================================================
+
+dustToggle.addEventListener(
+    'change',
+    applyDustEffect
+);
+
+dustColorSelect.addEventListener(
+    'change',
+    applyDustEffect
+);
+
+rateSlider.addEventListener(
+    'input',
+    (e)=>{
+
+        rateVal.textContent =
+            e.target.value + "%";
+
+        applyDustEffect();
+    }
+);
+
+timeSlider.addEventListener(
+    'input',
+    (e)=>{
+
+        timeVal.textContent =
+            e.target.value + " Years";
+
+        applyDustEffect();
+    }
+);
+
+
+// ======================================================
+// RESIZE
+// ======================================================
+
+window.addEventListener(
+    'resize',
+    ()=>{
+
+        camera.aspect =
+            window.innerWidth
+            / window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+    }
+);
+
+
+// ======================================================
+// START
+// ======================================================
+
+loadGLB(
+    DEFAULT_MODEL,
+    "Default model"
+);
+
+
+// ======================================================
+// LOOP
+// ======================================================
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    controls.update();
+
+    renderer.render(scene,camera);
+}
+
+animate();
 
 </script>
 
