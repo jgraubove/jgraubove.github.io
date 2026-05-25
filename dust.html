@@ -165,6 +165,47 @@ small{
     padding-top:10px;
 }
 
+#deltaEPanel{
+
+    position:absolute;
+
+    right:20px;
+
+    bottom:20px;
+
+    width:340px;
+
+    background:rgba(30,30,30,0.95);
+
+    border:1px solid #444;
+
+    border-radius:12px;
+
+    padding:16px;
+
+    z-index:100;
+}
+
+#deltaEStats{
+
+    margin-bottom:10px;
+
+    font-size:14px;
+
+    color:#fff;
+}
+
+#histogramCanvas{
+
+    width:100%;
+
+    height:180px;
+
+    background:#181818;
+
+    border-radius:8px;
+}
+
 </style>
 
 
@@ -305,6 +346,23 @@ small{
 </div>
 
 
+<div id="deltaEPanel">
+
+    <div id="deltaEStats">
+
+        ΔE > 1.5 Surface: 0%
+
+    </div>
+
+    <canvas
+        id="histogramCanvas"
+        width="320"
+        height="180"
+    ></canvas>
+
+</div>
+
+
 
 <script type="module">
 
@@ -324,11 +382,6 @@ from 'three/addons/loaders/GLTFLoader.js';
 // ======================================================
 // DEFAULT MODEL
 // ======================================================
-
-// Put your GLB in the SAME folder as this HTML
-// Example:
-// index.html
-// statue.glb
 
 const DEFAULT_MODEL =
     'https://jgraubove.github.io/model.glb';
@@ -459,6 +512,19 @@ const timeVal =
 const statusDiv =
     document.getElementById('status');
 
+const histogramCanvas =
+    document.getElementById(
+        'histogramCanvas'
+    );
+
+const histCtx =
+    histogramCanvas.getContext('2d');
+
+const deltaEStats =
+    document.getElementById(
+        'deltaEStats'
+    );
+
 
 // ======================================================
 // STATE
@@ -516,6 +582,81 @@ function setStatus(msg, type="neutral"){
 
 
 // ======================================================
+// COLOR SCIENCE
+// ======================================================
+
+function rgbToLab(color){
+
+    function pivot(n){
+
+        return n > 0.008856
+            ? Math.pow(n,1/3)
+            : (7.787 * n) + 16/116;
+    }
+
+    let r = color.r;
+    let g = color.g;
+    let b = color.b;
+
+    r = r > 0.04045
+        ? Math.pow((r+0.055)/1.055,2.4)
+        : r/12.92;
+
+    g = g > 0.04045
+        ? Math.pow((g+0.055)/1.055,2.4)
+        : g/12.92;
+
+    b = b > 0.04045
+        ? Math.pow((b+0.055)/1.055,2.4)
+        : b/12.92;
+
+    let x =
+        (r*0.4124 + g*0.3576 + b*0.1805)
+        / 0.95047;
+
+    let y =
+        (r*0.2126 + g*0.7152 + b*0.0722);
+
+    let z =
+        (r*0.0193 + g*0.1192 + b*0.9505)
+        / 1.08883;
+
+    x = pivot(x);
+    y = pivot(y);
+    z = pivot(z);
+
+    return {
+
+        L:(116*y)-16,
+
+        a:500*(x-y),
+
+        b:200*(y-z)
+    };
+}
+
+function deltaE76(c1,c2){
+
+    const lab1 = rgbToLab(c1);
+
+    const lab2 = rgbToLab(c2);
+
+    return Math.sqrt(
+
+        Math.pow(lab1.L-lab2.L,2)
+
+        +
+
+        Math.pow(lab1.a-lab2.a,2)
+
+        +
+
+        Math.pow(lab1.b-lab2.b,2)
+    );
+}
+
+
+// ======================================================
 // SHADER
 // ======================================================
 
@@ -524,22 +665,26 @@ function injectDustShader(material){
     if(material.userData.dustInjected)
         return;
 
-    material.userData.dustInjected =
-        true;
+    material.userData.dustInjected = true;
 
-    material.onBeforeCompile =
-    (shader)=>{
+    material.userData.dustUniforms = {
 
-        material.userData.shader =
-            shader;
+        uDustOpacity: {
+            value: 0.0
+        },
 
-        shader.uniforms.uDustOpacity = {
-            value:0.0
-        };
+        uDustColor: {
+            value: DUST_COLORS.soot.clone()
+        }
+    };
 
-        shader.uniforms.uDustColor = {
-            value:DUST_COLORS.soot
-        };
+    material.onBeforeCompile = (shader)=>{
+
+        shader.uniforms.uDustOpacity =
+            material.userData.dustUniforms.uDustOpacity;
+
+        shader.uniforms.uDustColor =
+            material.userData.dustUniforms.uDustColor;
 
         shader.vertexShader =
             shader.vertexShader.replace(
@@ -628,6 +773,306 @@ function calculateTotalOpacity(){
         (rate * months) / 100.0;
 
     return Math.min(total,1.0);
+}
+
+
+// ======================================================
+// HISTOGRAM
+// ======================================================
+
+function drawHistogram(bins){
+
+    const w =
+        histogramCanvas.width;
+
+    const h =
+        histogramCanvas.height;
+
+    histCtx.clearRect(0,0,w,h);
+
+    histCtx.fillStyle =
+        '#181818';
+
+    histCtx.fillRect(0,0,w,h);
+
+
+    // =========================================
+    // REMOVE EMPTY BINS
+    // =========================================
+
+    const filtered = [];
+
+    for(let i=1;i<bins.length;i++){
+
+        if(bins[i] > 0){
+
+            filtered.push({
+
+                value: bins[i],
+
+                index: i
+            });
+        }
+    }
+
+    // Nothing to draw
+    if(filtered.length === 0){
+
+        histCtx.fillStyle =
+            '#888';
+
+        histCtx.font =
+            '14px Segoe UI';
+
+        histCtx.fillText(
+            'No visible ΔE distribution',
+            20,
+            40
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // GRAPH SCALING
+    // =========================================
+
+    const max =
+        Math.max(
+            ...filtered.map(b=>b.value)
+        );
+
+    const barWidth =
+        w / filtered.length;
+
+
+    // =========================================
+    // DRAW BARS
+    // =========================================
+
+    filtered.forEach((bin,i)=>{
+
+        const barHeight =
+            (bin.value / max)
+            * (h - 50);
+
+        // Highlight bins above ΔE 1.5
+        histCtx.fillStyle =
+            bin.index > 1
+            ? '#4caf50'
+            : '#666';
+
+        histCtx.fillRect(
+
+            i * barWidth + 2,
+
+            h - barHeight - 25,
+
+            barWidth - 4,
+
+            barHeight
+        );
+
+
+        // Bin labels
+        histCtx.fillStyle =
+            '#aaa';
+
+        histCtx.font =
+            '10px Segoe UI';
+
+        histCtx.fillText(
+
+            bin.index.toString(),
+
+            i * barWidth + 4,
+
+            h - 8
+        );
+    });
+
+
+    // =========================================
+    // TITLE
+    // =========================================
+
+    histCtx.fillStyle =
+        '#fff';
+
+    histCtx.font =
+        '13px Segoe UI';
+
+    histCtx.fillText(
+        'ΔE Distribution',
+        10,
+        16
+    );
+
+
+    // =========================================
+    // THRESHOLD LINE
+    // =========================================
+
+    for(let i=0;i<filtered.length;i++){
+
+        if(filtered[i].index >= 2){
+
+            const x =
+                i * barWidth;
+
+            histCtx.strokeStyle =
+                '#ffffff44';
+
+            histCtx.beginPath();
+
+            histCtx.moveTo(x,25);
+
+            histCtx.lineTo(x,h-20);
+
+            histCtx.stroke();
+
+            histCtx.fillStyle =
+                '#fff';
+
+            histCtx.font =
+                '11px Segoe UI';
+
+            histCtx.fillText(
+                'ΔE 1.5',
+                x + 4,
+                36
+            );
+
+            break;
+        }
+    }
+}
+
+
+// ======================================================
+// DELTA E ANALYSIS
+// ======================================================
+
+function updateDeltaEAnalysis(){
+
+    if(!currentModel) return;
+
+    const enabled =
+        dustToggle.checked;
+
+    if(!enabled){
+
+        deltaEStats.textContent =
+            'ΔE > 1.5 Surface: 0%';
+
+        drawHistogram(
+            new Array(20).fill(0)
+        );
+
+        return;
+    }
+
+    const opacity =
+        calculateTotalOpacity();
+
+    const dustColor =
+        DUST_COLORS[
+            dustColorSelect.value
+        ];
+
+    const bins =
+        new Array(20).fill(0);
+
+    let aboveThreshold = 0;
+
+    let totalSamples = 0;
+
+    currentModel.traverse((child)=>{
+
+        if(!child.isMesh) return;
+
+        const geometry =
+            child.geometry;
+
+        const normals =
+            geometry.attributes.normal;
+
+        if(!normals) return;
+
+        const materials =
+            Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+        materials.forEach((material)=>{
+
+            const baseColor =
+                material.color
+                ? material.color.clone()
+                : new THREE.Color(1,1,1);
+
+            for(
+                let i=0;
+                i<normals.count;
+                i+=5
+            ){
+
+                const ny =
+                    normals.getY(i);
+
+                const upwardness =
+                    Math.max(ny,0);
+
+                const dustFactor =
+                    Math.min(
+                        upwardness * opacity,
+                        1.0
+                    );
+
+                const dusted =
+                    baseColor.clone()
+                    .lerp(
+                        dustColor,
+                        dustFactor
+                    );
+
+                const dE =
+                    deltaE76(
+                        baseColor,
+                        dusted
+                    );
+
+                const bin =
+                    Math.min(
+                        100,
+                        Math.floor(dE)
+                    );
+
+                bins[bin]++;
+
+                if(dE > 1.5){
+
+                    aboveThreshold++;
+                }
+
+                totalSamples++;
+            }
+        });
+    });
+
+    const percentage =
+        totalSamples > 0
+        ? (
+            aboveThreshold
+            / totalSamples
+        ) * 100
+        : 0;
+
+    deltaEStats.textContent =
+        `ΔE > 1.5 Surface: ${percentage.toFixed(1)}%`;
+
+    drawHistogram(bins);
 }
 
 
@@ -830,21 +1275,23 @@ function applyDustEffect(){
 
         materials.forEach((material)=>{
 
-            if(material.userData.shader){
+            if(material.userData.dustUniforms){
 
-                material.userData.shader
-                    .uniforms
+                material.userData
+                    .dustUniforms
                     .uDustOpacity
                     .value = opacity;
 
-                material.userData.shader
-                    .uniforms
+                material.userData
+                    .dustUniforms
                     .uDustColor
                     .value
                     .copy(dustColor);
             }
         });
     });
+
+    updateDeltaEAnalysis();
 }
 
 
