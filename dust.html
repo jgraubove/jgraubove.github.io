@@ -9,7 +9,7 @@
     content="width=device-width, initial-scale=1.0"
 >
 
-<title>GLB Dust Simulator</title>
+<title>Dust Simulator</title>
 
 <style>
 
@@ -206,6 +206,112 @@ small{
     border-radius:8px;
 }
 
+#infoPanel{
+
+    position:absolute;
+
+    right:20px;
+
+    top:20px;
+
+    width:340px;
+
+    background:rgba(30,30,30,0.95);
+
+    border:1px solid #444;
+
+    border-radius:12px;
+
+    padding:16px;
+
+    z-index:100;
+}
+
+/* NEW: Legend Panel Styles */
+#legendPanel {
+    position: absolute;
+    right: 20px;
+    bottom: 300px; 
+    width: 340px;
+    background: rgba(30,30,30,0.95);
+    border: 1px solid #444;
+    border-radius: 12px;
+    padding: 16px;
+    z-index: 100;
+    display: none; /* Hidden by default */
+}
+
+.legend-header {
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 4px;
+}
+
+.legend-canvas {
+    width: 100%;
+    height: 20px;
+    border: 1px solid #555;
+    border-radius: 2px;
+}
+
+.legend-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+/* Info Button Style */
+#infoBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s, background 0.2s;
+}
+
+#infoBtn:hover {
+    transform: scale(1.1);
+    background: #45a049;
+}
+
+#infoPopup {
+    position: absolute;
+    top: 70px; /* Below the button */
+    right: 20px;
+    width: 340px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    z-index: 199;
+    display: none; /* Hidden by default */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 </style>
 
 
@@ -267,8 +373,19 @@ small{
             </option>
 
             <option value="indoor">
-                Indoor Dust
+                Indoor Dust (Grey)
             </option>
+			
+            <option value="red">
+                High Visibility (Red)
+            </option>
+            
+            <!-- NEW OPTION ADDED HERE -->
+            <option value="heat">
+                Time to 5% (Heat Map)
+            </option>
+			
+			
 
         </select>
 
@@ -361,6 +478,34 @@ small{
     ></canvas>
 
 </div>
+
+<!-- Round Info Button -->
+<button id="infoBtn" title="Show Info">i</button>
+
+<!-- Popup Content -->
+<div id="infoPopup">
+    <p style="margin:0; font-size:14px; line-height:1.5;">
+        Visualise how dust accumulation will change the appearance of a 3D object. 
+        Dust becomes theoretically visible when the color change is ΔE > 1.5. 
+        However, at this level, visibility needs excellent lighting and a clear contrast 
+        with a clean area (for example, a smudge). 
+        <br><br>
+        Research shows that most observers find a surface visibly dusty above 
+        <strong>5% area coverage</strong> or about ΔE > 10. In practice this depends 
+        on color, shape, texture and context.
+    </p>
+</div>
+
+<!-- NEW: Legend Panel -->
+<div id="legendPanel">
+    <div class="legend-header">Time to 5% Coverage</div>
+    <canvas id="legendCanvas" class="legend-canvas" width="340" height="20"></canvas>
+    <div class="legend-labels">
+        <span id="legendMinLabel">Fast</span>
+        <span id="legendMaxLabel">Slow</span>
+    </div>
+</div>
+
 
 
 
@@ -525,6 +670,13 @@ const deltaEStats =
         'deltaEStats'
     );
 
+// NEW: Legend Elements
+const legendPanel = document.getElementById('legendPanel');
+const legendCanvas = document.getElementById('legendCanvas');
+const legendCtx = legendCanvas.getContext('2d');
+const legendMinLabel = document.getElementById('legendMinLabel');
+const legendMaxLabel = document.getElementById('legendMaxLabel');
+
 
 // ======================================================
 // STATE
@@ -544,6 +696,13 @@ const DUST_COLORS = {
             0.02,
             0.02,
             0.02
+        ),
+		
+	red:
+        new THREE.Color(
+            1,
+            0.00,
+            0.00
         ),
 
     indoor:
@@ -667,88 +826,99 @@ function injectDustShader(material){
 
     material.userData.dustInjected = true;
 
+    // Added uRate and uMode for Heat Map
     material.userData.dustUniforms = {
 
-        uDustOpacity: {
-            value: 0.0
-        },
-
-        uDustColor: {
-            value: DUST_COLORS.soot.clone()
-        }
+        uDustOpacity: { value: 0.0 },
+        uDustColor: { value: DUST_COLORS.soot.clone() },
+        uRate: { value: 1.0 },
+        uMode: { value: 0.0 } // 0 = Standard, 1 = Heat Map
     };
 
     material.onBeforeCompile = (shader)=>{
 
-        shader.uniforms.uDustOpacity =
-            material.userData.dustUniforms.uDustOpacity;
+        shader.uniforms.uDustOpacity = material.userData.dustUniforms.uDustOpacity;
+        shader.uniforms.uDustColor = material.userData.dustUniforms.uDustColor;
+        shader.uniforms.uRate = material.userData.dustUniforms.uRate;
+        shader.uniforms.uMode = material.userData.dustUniforms.uMode;
 
-        shader.uniforms.uDustColor =
-            material.userData.dustUniforms.uDustColor;
+        // --- VERTEX SHADER ---
+        shader.vertexShader = shader.vertexShader.replace(
+            '#include <common>',
+            `
+            #include <common>
+            varying vec3 vWorldNormal;
+            `
+        );
 
-        shader.vertexShader =
-            shader.vertexShader.replace(
-                '#include <common>',
-                `
-                #include <common>
+        shader.vertexShader = shader.vertexShader.replace(
+            '#include <beginnormal_vertex>',
+            `
+            #include <beginnormal_vertex>
+            vWorldNormal = normalize(mat3(modelMatrix) * objectNormal);
+            `
+        );
 
-                varying vec3 vWorldNormal;
-                `
-            );
+        // --- FRAGMENT SHADER ---
+        shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <common>',
+            `
+            #include <common>
+            varying vec3 vWorldNormal;
+            uniform float uDustOpacity;
+            uniform vec3 uDustColor;
+            uniform float uRate;
+            uniform float uMode;
+            
+            // Helper: HSL to RGB for Heat Map
+            vec3 hsl2rgb(vec3 c) {
+                vec3 rgb = clamp(abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0,0.0,1.0);
+                return c.z + c.y * (rgb-0.5)*(1.0-abs(2.0*c.z-1.0));
+            }
+            `
+        );
 
-        shader.vertexShader =
-            shader.vertexShader.replace(
-                '#include <beginnormal_vertex>',
-                `
-                #include <beginnormal_vertex>
+        shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <dithering_fragment>',
+            `
+            float upwardness = max(vWorldNormal.y, 0.0);
+            
+            if (uMode > 0.5) {
+                // HEAT MAP MODE: Time to 5% Coverage
+                // Target = 5%. Rate = % per month.
+                // Time (months) = 5.0 / (Rate * upwardness)
+                // If upwardness is 0, time is infinite.
+                
+                float safeUpwardness = max(upwardness, 0.001); // Avoid div by zero
+                float monthsTo5 = 5.0 / (uRate * safeUpwardness);
+                float yearsTo5 = monthsTo5 / 12.0;
+                
+                // Define visual range: Min (Fast) to Max (Slow)
+                // We estimate Max visually as 10 years or 2x the fastest time
+                float minTime = 1.0/12.0;
+                float maxTime = 1.0;
+                
+                // Normalize 0..1
+                float t = clamp((yearsTo5 - minTime) / (maxTime - minTime), 0.0, 1.0);
+                
+                // Map to Rainbow (Red=Fast, Purple=Slow)
+                // Hue 0.0 = Red, 0.8 = Purple
+                vec3 heatColor = hsl2rgb(vec3(t * 0.8, 1.0, 0.5));
+                
+                // Apply heat color directly, ignoring base material color slightly for visibility
+                // Mix 80% heat color, 20% original to keep some depth
+                gl_FragColor.rgb = mix(gl_FragColor.rgb, heatColor, 0.8);
+                
+            } else {
+                // STANDARD MODE
+                float dustFactor = clamp(upwardness * uDustOpacity, 0.0, 1.0);
+                gl_FragColor.rgb *= (1.0 - dustFactor);
+                gl_FragColor.rgb += uDustColor * dustFactor;
+            }
 
-                vWorldNormal =
-                    normalize(
-                        mat3(modelMatrix)
-                        * objectNormal
-                    );
-                `
-            );
-
-        shader.fragmentShader =
-            shader.fragmentShader.replace(
-                '#include <common>',
-                `
-                #include <common>
-
-                varying vec3 vWorldNormal;
-
-                uniform float uDustOpacity;
-
-                uniform vec3 uDustColor;
-                `
-            );
-
-        shader.fragmentShader =
-            shader.fragmentShader.replace(
-                '#include <dithering_fragment>',
-                `
-                float upwardness =
-                    max(vWorldNormal.y,0.0);
-
-                float dustFactor =
-                    clamp(
-                        upwardness
-                        * uDustOpacity,
-                        0.0,
-                        1.0
-                    );
-
-                gl_FragColor.rgb *=
-                    (1.0 - dustFactor);
-
-                gl_FragColor.rgb +=
-                    uDustColor
-                    * dustFactor;
-
-                #include <dithering_fragment>
-                `
-            );
+            #include <dithering_fragment>
+            `
+        );
     };
 
     material.needsUpdate = true;
@@ -773,6 +943,87 @@ function calculateTotalOpacity(){
         (rate * months) / 100.0;
 
     return Math.min(total,1.0);
+}
+
+
+// ======================================================
+// LEGEND DRAWING
+// ======================================================
+
+function drawLegend() {
+    if (!legendCanvas) return;
+    
+    const w = legendCanvas.width;
+    const h = legendCanvas.height;
+    const ctx = legendCtx;
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Get current rate to calculate time range
+    const rate = parseFloat(rateSlider.value); // % per month
+    const targetCoverage = 5.0;
+    
+    // Time = Target / (Rate * 12 months)
+    // Min time (max upwardness = 1.0)
+    const minYears = 1/12;
+    
+    // Max time: Cap at 1 year
+    let maxYears = 1;
+
+    // Draw Rainbow Gradient (Horizontal)
+    const gradient = ctx.createLinearGradient(0, 0, w, 0);
+    
+    // Helper to convert HSL to RGB for canvas
+    function hslToRgb(h, s, l) {
+        let r, g, b;
+        if (s === 0) {
+            r = g = b = l; 
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+        return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+    }
+
+    // Create gradient stops (Rainbow: Red -> Yellow -> Green -> Cyan -> Blue -> Purple)
+    const stops = [
+        { pos: 0.0, hue: 0.0 },      // Red
+        { pos: 0.2, hue: 0.15 },     // Orange
+        { pos: 0.4, hue: 0.33 },     // Yellow/Green
+        { pos: 0.6, hue: 0.5 },      // Cyan
+        { pos: 0.8, hue: 0.66 },     // Blue
+        { pos: 1.0, hue: 0.8 }       // Purple
+    ];
+
+    stops.forEach(stop => {
+        gradient.addColorStop(stop.pos, hslToRgb(stop.hue, 1.0, 0.5));
+    });
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw Border
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, w, h);
+
+    // Update Text Labels
+    if (legendMinLabel && legendMaxLabel) {
+        legendMinLabel.textContent = `1 month`;
+        legendMaxLabel.textContent = `12 months`;
+    }
 }
 
 
@@ -970,6 +1221,13 @@ function updateDeltaEAnalysis(){
             new Array(20).fill(0)
         );
 
+        return;
+    }
+
+    // Skip DeltaE analysis for Heat Map mode as it's a visualization, not accumulation
+    if (dustColorSelect.value === 'heat') {
+        deltaEStats.textContent = "Mode: Time to 5% Coverage";
+        drawHistogram(new Array(20).fill(0));
         return;
     }
 
@@ -1251,47 +1509,50 @@ function applyDustEffect(){
 
     if(!currentModel) return;
 
-    const enabled =
-        dustToggle.checked;
+    const enabled = dustToggle.checked;
+    const mode = dustColorSelect.value;
+    const isHeatMap = (mode === 'heat');
 
-    const opacity =
-        enabled
-        ? calculateTotalOpacity()
-        : 0.0;
+    // Update Legend Visibility
+    if (legendPanel) {
+        legendPanel.style.display = (enabled && isHeatMap) ? 'block' : 'none';
+    }
 
-    const dustColor =
-        DUST_COLORS[
-            dustColorSelect.value
-        ];
+    // Draw Legend if needed
+    if (enabled && isHeatMap) {
+        drawLegend();
+    }
+
+    const opacity = enabled ? calculateTotalOpacity() : 0.0;
+    const dustColor = DUST_COLORS[dustColorSelect.value] || DUST_COLORS.soot;
+    const rate = parseFloat(rateSlider.value);
 
     currentModel.traverse((child)=>{
 
         if(!child.isMesh) return;
 
-        const materials =
-            Array.isArray(child.material)
-            ? child.material
-            : [child.material];
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
 
         materials.forEach((material)=>{
 
             if(material.userData.dustUniforms){
 
-                material.userData
-                    .dustUniforms
-                    .uDustOpacity
-                    .value = opacity;
-
-                material.userData
-                    .dustUniforms
-                    .uDustColor
-                    .value
-                    .copy(dustColor);
+                material.userData.dustUniforms.uDustOpacity.value = opacity;
+                material.userData.dustUniforms.uDustColor.value.copy(dustColor);
+                material.userData.dustUniforms.uRate.value = rate;
+                material.userData.dustUniforms.uMode.value = isHeatMap ? 1.0 : 0.0;
             }
         });
     });
 
-    updateDeltaEAnalysis();
+    // Skip DeltaE analysis for Heat Map mode
+    if (!isHeatMap) {
+        updateDeltaEAnalysis();
+    } else {
+        // Just update stats text for heat map
+                deltaEStats.textContent = "Mode: Time to 5% Coverage";
+        drawHistogram(new Array(20).fill(0));
+    }
 }
 
 
@@ -1419,6 +1680,24 @@ timeSlider.addEventListener(
     }
 );
 
+// Info Button Toggle
+const infoBtn = document.getElementById('infoBtn');
+const infoPopup = document.getElementById('infoPopup');
+
+if (infoBtn && infoPopup) {
+    infoBtn.addEventListener('click', () => {
+        const isVisible = infoPopup.style.display === 'block';
+        infoPopup.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Optional: Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!infoBtn.contains(e.target) && !infoPopup.contains(e.target)) {
+            infoPopup.style.display = 'none';
+        }
+    });
+}
+
 
 // ======================================================
 // RESIZE
@@ -1440,6 +1719,7 @@ window.addEventListener(
         );
     }
 );
+
 
 
 // ======================================================
@@ -1471,3 +1751,4 @@ animate();
 
 </body>
 </html>
+		
