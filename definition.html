@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What is Heritage Science?</title>
+
+<style>
+:root{
+    --blue:#1e5eff;
+    --light-blue:#eef4ff;
+    --border:#d9e2f2;
+    --text:#222;
+}
+
+*{
+    box-sizing:border-box;
+    font-family:Inter, Segoe UI, Roboto, sans-serif;
+}
+
+body{
+    margin:0;
+    background:white;
+    color:var(--text);
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    padding:40px 30px 80px;
+}
+
+h1{
+    margin:0 0 25px;
+    font-size:3rem;
+    font-weight:800;
+    color:var(--blue);
+    letter-spacing:-0.03em;
+}
+
+.main-layout{
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.controls{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+
+    height:650px;
+    overflow-y:auto;
+    padding-right:6px;
+}
+
+.option{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+
+    background:var(--light-blue);
+    border:1px solid var(--border);
+    border-radius:12px;
+
+    padding:10px 12px;
+
+    cursor:pointer;
+    transition:all 0.2s ease;
+
+    font-size:0.82rem;
+    line-height:1.3;
+}
+
+.option:hover{
+    transform:translateY(-1px);
+    box-shadow:0 3px 10px rgba(0,0,0,0.06);
+}
+
+.option input{
+    margin-top:2px;
+    flex-shrink:0;
+}
+
+.number{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    width:22px;
+    height:22px;
+
+    border-radius:50%;
+    background:var(--blue);
+    color:white;
+
+    font-size:0.72rem;
+    font-weight:700;
+
+    flex-shrink:0;
+}
+
+.definition-box{
+    background:white;
+    border:1px solid #e6eaf2;
+    border-radius:20px;
+
+    padding:35px;
+
+    height:650px;
+    overflow-y:auto;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+.definition{
+    font-size:1.5rem;
+    line-height:1.8;
+}
+
+.info-btn{
+    position:fixed;
+    right:24px;
+    bottom:24px;
+
+    width:58px;
+    height:58px;
+
+    border:none;
+    border-radius:50%;
+
+    background:var(--blue);
+    color:white;
+
+    font-size:1.5rem;
+    font-weight:700;
+
+    cursor:pointer;
+
+    box-shadow:0 8px 24px rgba(30,94,255,0.35);
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+
+    display:none;
+    align-items:center;
+    justify-content:center;
+
+    padding:20px;
+}
+
+.modal-content{
+    background:white;
+    max-width:700px;
+    width:100%;
+
+    border-radius:20px;
+    padding:30px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal h2{
+    margin-top:0;
+    color:var(--blue);
+}
+
+.close-btn{
+    margin-top:20px;
+
+    background:var(--blue);
+    color:white;
+
+    border:none;
+    border-radius:10px;
+
+    padding:10px 18px;
+
+    cursor:pointer;
+}
+
+	.new-part{
+    animation: highlightFade 3s ease forwards;
+    border-radius:4px;
+}
+
+@keyframes highlightFade{
+
+    0%{
+        background:rgba(30,94,255,0.25);
+        box-shadow:
+            0 0 12px rgba(30,94,255,0.7),
+            0 0 24px rgba(30,94,255,0.4);
+    }
+
+    70%{
+        background:rgba(30,94,255,0.12);
+        box-shadow:
+            0 0 8px rgba(30,94,255,0.25);
+    }
+
+    100%{
+        background:transparent;
+        box-shadow:none;
+    }
+}
+
+@media (max-width:900px){
+
+    .main-layout{
+        grid-template-columns:1fr;
+    }
+
+    .controls{
+        height:auto;
+        max-height:350px;
+    }
+
+    .definition-box{
+        height:auto;
+        min-height:300px;
+    }
+
+    h1{
+        font-size:2.2rem;
+    }
+
+    .definition{
+        font-size:1.15rem;
+    }
+	
+	
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>What is Heritage Science?</h1>
+
+<div class="main-layout">
+
+<div class="controls">
+
+<label class="option">
+<input type="checkbox" id="c1">
+<span class="number">1</span>
+<span>Obvious tautology</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c2">
+<span class="number">2</span>
+<span>Popperian definition of science</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c3">
+<span class="number">3</span>
+<span>Insist on heritageness</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c4">
+<span class="number">4</span>
+<span>Explain the need for heritageness in more detail</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c5">
+<span class="number">5</span>
+<span>Offend critical heritage studies</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c6">
+<span class="number">6</span>
+<span>Offend archaeologists</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c7">
+<span class="number">7</span>
+<span>Add the classic trilogy of purposes of heritage science</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c8">
+<span class="number">8</span>
+<span>Add the continental definition of science</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c9">
+<span class="number">9</span>
+<span>Improve the above with the German word Wissenschaft</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c10">
+<span class="number">10</span>
+<span>Clarify with examples of disciplinary approaches</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c11">
+<span class="number">11</span>
+<span>Make the above examples copiously clear</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c12">
+<span class="number">12</span>
+<span>Expect engagement with value</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c13">
+<span class="number">13</span>
+<span>Add NHSF five challenges</span>
+</label>
+
+<label class="option">
+<input type="checkbox" id="c14">
+<span class="number">14</span>
+<span>Make interdisciplinarity explicit</span>
+</label>
+```
+
+
+</div>
+
+<div class="definition-box">
+<div id="definition" class="definition"></div>
+</div>
+
+</div>
+
+</div>
+
+<button class="info-btn" onclick="openInfo()">i</button>
+
+<div class="modal" id="infoModal">
+<div class="modal-content">
+
+<h2>About this definition</h2>
+
+<p>
+After debating one time too many the definition of heritage science, I have created this page to end the discussion once and for all!
+<p>
+This interactive definition allows different intellectual traditions
+surrounding Heritage Science to be switched on and off. The shortest definition appears when no options are selected.
+<p>
+My goal is to show that there is no single definition. The definitions of Heritage Science depend on the assumptions
+one chooses to make explicit.
+<p>
+Josep
+</p>
+
+<button class="close-btn" onclick="closeInfo()">Close</button>
+
+</div>
+</div>
+
+<script>
+
+const boxes = document.querySelectorAll("input[type=checkbox]");
+
+let lastChanged = null;
+
+boxes.forEach(box => {
+    box.addEventListener("change", function(){
+        lastChanged = this.id;
+        updateDefinition();
+    });
+});
+
+function mark(id,text){
+
+    if(lastChanged === id){
+        return `<span class="new-part">${text}</span>`;
+    }
+
+    return text;
+}
+
+function updateDefinition(){
+
+    if(document.getElementById("c9").checked){
+        document.getElementById("c8").checked = true;
+    }
+
+    if(document.getElementById("c11").checked){
+        document.getElementById("c10").checked = false;
+    }
+
+    const c1 = document.getElementById("c1").checked;
+    const c2 = document.getElementById("c2").checked;
+    const c3 = document.getElementById("c3").checked;
+    const c4 = document.getElementById("c4").checked;
+    const c5 = document.getElementById("c5").checked;
+    const c6 = document.getElementById("c6").checked;
+    const c7 = document.getElementById("c7").checked;
+    const c8 = document.getElementById("c8").checked;
+    const c9 = document.getElementById("c9").checked;
+    const c10 = document.getElementById("c10").checked;
+    const c11 = document.getElementById("c11").checked;
+	const c12 = document.getElementById("c12").checked; 
+	const c13 = document.getElementById("c13").checked; 
+	const c14 = document.getElementById("c14").checked;
+
+    let text = "Heritage Science is the ";
+
+    if(c6){
+        text += mark("c6","only ");
+    }
+
+    if(c5){
+        text += mark("c5"," critical and ");
+    }
+
+	if(c14){
+		text += mark("c14"," interdisciplinary ");
+	}
+
+
+	text += c1 ? mark("c1","scientific") : mark("c1","systematic");
+
+    if(c2){
+        text += mark("c2",", hypothesis-driven,");
+    }
+
+    text += " study of heritage";
+
+    if(c3){
+        text += mark("c3"," insofar as it is, or because it is, heritage");
+    }
+
+    if(c7){
+        text += mark("c7"," to support its conservation, management and interpretation");
+    }
+
+    text += ".";
+
+    if(c4){
+        text += mark("c4"," In other words, the science that pays full attention to heritage, rather than simply using science on an object that happens to be heritage.");
+    }
+
+    if(c8){
+
+        text += mark("c8"," The word 'Science' in Heritage Science has its continental meaning, that is, it refers to any systematic approach to reality and spans the physical and social sciences");
+
+        if(c9){
+            text += mark("c9",", what for example in German would be called <em>Wissenschaft</em> ('knowledge-ship')");
+        }
+
+        text += ".";
+    }
+
+    if(c11){
+
+        text += mark("c11"," It combines approaches from the natural sciences, such as data science, chemistry, physics and biology, social sciences, such as psychology, anthropology and economics, heritage studies, and humanities, such as cultural studies, heritage studies and art history.");
+
+    }
+    else if(c10){
+
+        text += mark("c10"," It combines approaches from the natural sciences, social sciences, and humanities.");
+
+    }
+
+	if(c12){
+		text += mark("c12"," Heritage Science combines an understanding of the materiality and heritage values.");
+	}
+	
+	if(c13){ text += mark("c13"," Heritage Science benefits society not only because it supports heritage, but also because it directly tackles pressing social challenges, such as sustainable development, the climate emergency, the need for improved wellbeing, equality and inclusivity, and digital society."); 
+	}
+
+
+    document.getElementById("definition").innerHTML = text;
+}
+
+updateDefinition();
+
+function openInfo(){
+    document.getElementById("infoModal").style.display = "flex";
+}
+
+function closeInfo(){
+    document.getElementById("infoModal").style.display = "none";
+}
+
+window.onclick = function(event){
+    const modal = document.getElementById("infoModal");
+    if(event.target === modal){
+        closeInfo();
+    }
+};
+
+</script>
+
+</body>
+</html>
