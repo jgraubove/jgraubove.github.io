@@ -258,7 +258,7 @@ h1{
 <label class="option">
 <input type="checkbox" id="c2">
 <span class="number">2</span>
-<span>Popperian definition of science</span>
+<span>Classical, narrower definition of science</span>
 </label>
 
 <label class="option">
@@ -274,62 +274,50 @@ h1{
 </label>
 
 <label class="option">
-<input type="checkbox" id="c5">
-<span class="number">5</span>
-<span>Offend critical heritage studies</span>
-</label>
-
-<label class="option">
-<input type="checkbox" id="c6">
-<span class="number">6</span>
-<span>Offend archaeologists</span>
-</label>
-
-<label class="option">
 <input type="checkbox" id="c7">
-<span class="number">7</span>
+<span class="number">5</span>
 <span>Add the classic trilogy of purposes of heritage science</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c8">
-<span class="number">8</span>
+<span class="number">6</span>
 <span>Add the continental definition of science</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c9">
-<span class="number">9</span>
+<span class="number">7</span>
 <span>Improve the above with the German word Wissenschaft</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c10">
-<span class="number">10</span>
+<span class="number">8</span>
 <span>Clarify with examples of disciplinary approaches</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c11">
-<span class="number">11</span>
+<span class="number">9</span>
 <span>Make the above examples copiously clear</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c12">
-<span class="number">12</span>
+<span class="number">10</span>
 <span>Expect engagement with value</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c13">
-<span class="number">13</span>
+<span class="number">11</span>
 <span>Add NHSF five challenges</span>
 </label>
 
 <label class="option">
 <input type="checkbox" id="c14">
-<span class="number">14</span>
+<span class="number">12</span>
 <span>Make interdisciplinarity explicit</span>
 </label>
 
@@ -404,8 +392,6 @@ function updateDefinition(){
     const c2 = document.getElementById("c2").checked;
     const c3 = document.getElementById("c3").checked;
     const c4 = document.getElementById("c4").checked;
-    const c5 = document.getElementById("c5").checked;
-    const c6 = document.getElementById("c6").checked;
     const c7 = document.getElementById("c7").checked;
     const c8 = document.getElementById("c8").checked;
     const c9 = document.getElementById("c9").checked;
@@ -417,70 +403,111 @@ function updateDefinition(){
 
     let text = "Heritage Science is the ";
 
-    if(c6){
-        text += mark("c6","only ");
-    }
-
-    if(c5){
-        text += mark("c5"," critical and ");
-    }
-
-	if(c14){
-		text += mark("c14"," interdisciplinary ");
-	}
 
 
-	text += c1 ? mark("c1","scientific") : mark("c1","systematic");
+		if(c14){
+			text += mark("c14","interdisciplinary ");
+		}
 
-    if(c2){
-        text += mark("c2",", hypothesis-driven,");
-    }
+		text += c1
+			? mark("c1","scientific")
+			: mark("c1","systematic");
 
-    text += " study of heritage";
+		if(c2){
+			text += mark("c2",", evidence-based and hypothesis-driven,");
+		}
 
-    if(c3){
-        text += mark("c3"," insofar as it is, or because it is, heritage");
-    }
+		text += " study of heritage";
 
-    if(c7){
-        text += mark("c7"," to support its conservation, management and interpretation");
-    }
+		if(c3){
+			text += mark("c3"," insofar as it is, or because it is, heritage");
+		}
 
-    text += ".";
+		text += ".";
 
-    if(c4){
-        text += mark("c4"," In other words, the science that pays full attention to heritage, rather than simply using science on an object that happens to be heritage.");
-    }
 
-    if(c8){
+		// Explanation of heritageness
 
-        text += mark("c8"," The word 'Science' in Heritage Science has its continental meaning, that is, it refers to any systematic approach to reality and spans the physical and social sciences");
+		if(c4){
+			text += mark(
+				"c4",
+				" This means that Heritage Science studies heritage not merely as an object of investigation, but as a cultural phenomenon that shapes the questions asked, the methods used, and the interpretation of results."
+			);
+		}
 
-        if(c9){
-            text += mark("c9",", what for example in German would be called <em>Wissenschaft</em> ('knowledge-ship')");
-        }
 
-        text += ".";
-    }
+		// Purpose
 
-    if(c11){
+		if(c7){
+			text += mark(
+				"c7",
+				" Its purpose is to support conservation, management and interpretation."
+			);
+		}
 
-        text += mark("c11"," It combines approaches from the natural sciences, such as data science, chemistry, physics and biology, social sciences, such as psychology, anthropology and economics, and the humanities, such as cultural studies, heritage studies and art history.");
 
-    }
-    else if(c10){
+		// Meaning of science
 
-        text += mark("c10"," It combines approaches from the natural sciences, social sciences, and humanities.");
+		if(c8){
 
-    }
+			text += mark(
+				"c8",
+				" The word 'Science' in Heritage Science is used in its broader continental sense, referring to all forms of knowledge production"
+			);
 
-	if(c12){
-		text += mark("c12"," Heritage Science always combines an understanding of materiality and heritage values.");
-	}
-	
-	if(c13){ text += mark("c13"," Heritage Science benefits society not only because it supports heritage, but also because it directly tackles pressing social challenges, such as sustainable development, the climate emergency, the need for improved wellbeing, equality and inclusivity, and digital society."); 
-	}
+			if(c9){
+				text += mark(
+					"c9",
+					", analogous to the German concept of Wissenschaft, which encompasses all systematic scholarly inquiry"
+				);
+			}
 
+			text += ".";
+		}
+
+
+		// Disciplinary scope
+
+		if(c11){
+
+			text += mark(
+				"c11",
+				" It combines approaches from the natural sciences, such as data science, chemistry, physics and biology; social sciences, such as psychology, anthropology and economics; and the humanities, such as cultural studies, heritage studies and art history."
+			);
+
+		}
+		else if(c10){
+
+			text += mark(
+				"c10",
+				" It combines approaches from the natural sciences, social sciences, and humanities."
+			);
+
+		}
+
+
+		// Value
+
+		if(c12){
+
+			text += mark(
+				"c12",
+				" Heritage Science combines an understanding of materiality and heritage values."
+			);
+
+		}
+
+
+		// Societal challenges
+
+		if(c13){
+
+			text += mark(
+				"c13",
+				" Heritage Science benefits society not only because it supports heritage, but also by addressing contemporary societal challenges, including sustainability, climate adaptation, wellbeing, social inclusion, and digital transformation."
+			);
+
+		}
 
     document.getElementById("definition").innerHTML = text;
 }
